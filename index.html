@@ -134,6 +134,57 @@
     
     
     <div class="col-12 col-md-8 m-auto">
+      <a href="/2019/11/15/iterm2%E4%BF%9D%E5%AD%98%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95/">
+        <p class="h4 index-header">iterm2保存密码登录</p>
+        
+        
+          
+        
+        <div class="index-excerpt" >
+          <div class="index-text mb-1">iterm2保存密码登录
+编写item2login.sh脚本文件
+
+#!/usr/bin/expect  
+
+set timeout 30  
+spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]  
+expect {  
+       &quot;(yes/no)?&quot;  
+       {send &quot;yes\n&quot;;exp_continue}  
+       &quot;password:&quot;  
+       {send &quot;[lindex $argv 3]\n&quot;}  
+}  
+interact 
+
+
+lindex $argv 0 : port
+lindex $argv 1：username
+lindex $argv 2：IP
+lindex $argv 3：password
+将item2login.sh移动到/usr/local/bin目录下，然后使用chmod 777 item2login.sh修改脚本权限；
+打开iterm2的Profiles–&gt</div>
+        </div>
+      </a>
+
+      <div>
+        
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-15&nbsp;&nbsp;
+        
+        
+        
+          <i class="iconfont icon-tag"></i>
+          
+            <a href="/tags/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
+          
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 mx-auto">
+    
+    
+    <div class="col-12 col-md-8 m-auto">
       <a href="/2019/11/15/hello-world/">
         <p class="h4 index-header">Hello World</p>
         

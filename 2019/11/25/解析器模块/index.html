@@ -161,20 +161,16 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="解析器模块"><a href="#解析器模块" class="headerlink" title="解析器模块"></a>解析器模块</h1><p><a name="xMdRQ"></a></p>
-<h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h1><p>解析器模块，对应的包是<code>parsing，</code>如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574319748804-c15a9657-b27e-4530-95e7-4e0eaf166f6a.png#align=left&display=inline&height=825&originHeight=1650&originWidth=850&search=&size=0&status=done&width=425" srcset="undefined" alt=""><br />解析器模块，主要提供了两个功能：</p>
+            <h1 id="解析器模块"><a href="#解析器模块" class="headerlink" title="解析器模块"></a>解析器模块</h1><h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h1><p>​    解析器模块，对应的包是<code>parsing，</code>如下图所示：<img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574319748804-c15a9657-b27e-4530-95e7-4e0eaf166f6a.png#align=left&display=inline&height=825&originHeight=1650&originWidth=850&search=&size=0&status=done&width=425" srcset="undefined" alt="">解析器模块，主要提供了两个功能：</p>
 <ul>
-<li><p>对XPath进行封装，为Mybatis初始化时解析<code>mybatis-config.xml</code>配置文件以及<code>mapper</code>映射配置文件提供支持。</p>
-</li>
-<li><p>为处理动态SQL语句中的占位符提供支持。<br><a name="a8d6j"></a></p>
+<li>对XPath进行封装，为Mybatis初始化时解析<code>mybatis-config.xml</code>配置文件以及<code>mapper</code>映射配置文件提供支持。</li>
+<li>为处理动态SQL语句中的占位符提供支持。</li>
+</ul>
 <h1 id="2-XML解析方式"><a href="#2-XML解析方式" class="headerlink" title="2. XML解析方式"></a>2. XML解析方式</h1><p>在mybatis中涉及到多个XML配置文件，因此我们首先要介绍XML解析的相关内容。XML解析的常见的方式有三种：</p>
-</li>
-<li><p>DOM（document object model）解析方式</p>
-</li>
-<li><p>SAX（simple api for xml）解析方式</p>
-</li>
-<li><p>Java6版本开始，JDK致辞的StAX（streaming api for xml）解析方式。</p>
-</li>
+<ul>
+<li>DOM（document object model）解析方式</li>
+<li>SAX（simple api for xml）解析方式</li>
+<li>Java6版本开始，JDK致辞的StAX（streaming api for xml）解析方式。</li>
 </ul>
 <p>DOM是基于树形结构的XML解析方式，它将整个XML文档读入内存并构建成一个DOM树,基于这棵树形结构对各个节点（node）进行操作。XML文档中的每一个成分都是一个节点：整个文档是一个文档节点，每个XML标签对应一个元素节点，包含在XML标签中的文本是文本节点，每一个XML属性是一个属性节点，注释属于注释节点。</p>
 <pre><code class="java">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
@@ -197,8 +193,9 @@
     &lt;mapper resource=&quot;org/mybatis/example/BlogMapper.xml&quot;/&gt;
   &lt;/mappers&gt;
 &lt;/configuration&gt;</code></pre>
-<p>解析后得到的树形结构为：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574647712005-6850d0a3-3091-429c-b5f7-49145c3c7ab9.png#align=left&display=inline&height=801&originHeight=801&originWidth=1031&search=&size=0&status=done&width=1031" srcset="undefined" alt=""><br><a name="jUIdv"></a></p>
-<h1 id="3-XPath"><a href="#3-XPath" class="headerlink" title="3. XPath"></a>3. XPath</h1><p>mybatis在初始化过程中处理mybatis-config.xml配置文件以及映射文件时，使用的是DOM解析方式，并结合XPath解析xml配置文件，正如前文所述，DOM会对整个XML文档加载到内存中形成树形数据结构，而xpth是一种为查询XML文档而设计的语言，它可以与DOM解析方式配合使用，实现对XML文档的解析。xpath之于XML就好比SQL语言之于数据库。<br />代码示例：</p>
+<p>解析后得到的树形结构为：<img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574647712005-6850d0a3-3091-429c-b5f7-49145c3c7ab9.png#align=left&display=inline&height=801&originHeight=801&originWidth=1031&search=&size=0&status=done&width=1031" srcset="undefined" alt=""></p>
+<h1 id="3-XPath"><a href="#3-XPath" class="headerlink" title="3. XPath"></a>3. XPath</h1><p>​        mybatis在初始化过程中处理mybatis-config.xml配置文件以及映射文件时，使用的是DOM解析方式，并结合XPath解析xml配置文件，正如前文所述，DOM会对整个XML文档加载到内存中形成树形数据结构，而xpth是一种为查询XML文档而设计的语言，它可以与DOM解析方式配合使用，实现对XML文档的解析。xpath之于XML就好比SQL语言之于数据库。</p>
+<p>​        代码示例：</p>
 <pre><code class="java">import org.apache.ibatis.io.Resources;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -273,8 +270,7 @@ public class XPathTest {
 <p>运行结果：</p>
 <pre><code class="java">mapper......org/mybatis/example/BlogMapper.xml
 mapper......org/mybatis/example/UserMapper.xml</code></pre>
-<p><a name="xZP7U"></a></p>
-<h1 id="4-XPathParser"><a href="#4-XPathParser" class="headerlink" title="4. XPathParser"></a>4. XPathParser</h1><p>Mybatis提供的<code>org.apache.ibatis.parsing.XPathParser</code>类封装了前面涉及到的<code>XPath</code>、<code>Document</code>和<code>EntityResolver</code>，如图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574692699559-fde2f4f1-7dbd-4e9b-a266-64e5b199208c.png#align=left&display=inline&height=218&originHeight=436&originWidth=814&search=&size=0&status=done&width=407" srcset="undefined" alt=""><br />XPathParser中各个字段的含义和功能如下所示：</p>
+<h1 id="4-XPathParser"><a href="#4-XPathParser" class="headerlink" title="4. XPathParser"></a>4. XPathParser</h1><p>Mybatis提供的<code>org.apache.ibatis.parsing.XPathParser</code>类封装了前面涉及到的<code>XPath</code>、<code>Document</code>和<code>EntityResolver</code>，如图所示：<img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574692699559-fde2f4f1-7dbd-4e9b-a266-64e5b199208c.png#align=left&display=inline&height=218&originHeight=436&originWidth=814&search=&size=0&status=done&width=407" srcset="undefined" alt="">XPathParser中各个字段的含义和功能如下所示：</p>
 <pre><code class="java">  /**
    * xml document 对象
    */
@@ -305,7 +301,7 @@ mapper......org/mybatis/example/UserMapper.xml</code></pre>
    *    用于查询xml中的节点和元素
    */
   private XPath xpath;</code></pre>
-<p>默认情况下，对XML文档进行验证时，会根据XML文档开始位置指定的网址加载对应的<code>DTD</code>文件或者<code>XSD</code>文件。如果是解析<code>mybatis-config.xml</code>配置文件时，默认会加载<a href="http://mybatis.org/dtd/mybatis-3-config.dtd这个`DTD`文件。但是，如果如果每个应用启动都从网络加载该`DTD`文件，势必在弱网络下体验非常下，甚至说应用部署在无网络的环境下，还会导致下载不下来，那么就会出现XML校验失败的情况" target="_blank" rel="noopener">http://mybatis.org/dtd/mybatis-3-config.dtd这个`DTD`文件。但是，如果如果每个应用启动都从网络加载该`DTD`文件，势必在弱网络下体验非常下，甚至说应用部署在无网络的环境下，还会导致下载不下来，那么就会出现XML校验失败的情况</a> ，所以，在实际场景下，<code>MyBatis</code>自定义了<code>EntityResolver</code>的实现，达到使用本地<code>DTD</code>文件，从而避免下载网络 <code>DTD</code> 文件的效果。<code>XMLMapperEntityResolver</code>是<code>mybatis</code>提供的<code>EntityResolver</code>接口的实现类，如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574693098254-e665cdc9-4a95-4028-b33d-eaf6ced3b044.png#align=left&display=inline&height=142&originHeight=284&originWidth=494&search=&size=0&status=done&width=247" srcset="undefined" alt=""><br /><code>EntityResolver</code>接口的核心是<code>resolveEntity()</code>方法，<code>XMLMapperEntityResolver</code>是实现如下所示：</p>
+<p>​        默认情况下，对XML文档进行验证时，会根据XML文档开始位置指定的网址加载对应的<code>DTD</code>文件或者<code>XSD</code>文件。如果是解析<code>mybatis-config.xml</code>配置文件时，默认会加载<code>http://mybatis.org/dtd/mybatis-3-config.dtd</code>这个<code>DTD</code>文件。但是，如果如果每个应用启动都从网络加载该<code>DTD</code>文件，势必在弱网络下体验非常下，甚至说应用部署在无网络的环境下，还会导致下载不下来，那么就会出现XML校验失败的情况 ，所以，在实际场景下，<code>MyBatis</code>自定义了<code>EntityResolver</code>的实现，达到使用本地<code>DTD</code>文件，从而避免下载网络 <code>DTD</code> 文件的效果。<code>XMLMapperEntityResolver</code>是<code>mybatis</code>提供的<code>EntityResolver</code>接口的实现类，如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574693098254-e665cdc9-4a95-4028-b33d-eaf6ced3b044.png#align=left&display=inline&height=142&originHeight=284&originWidth=494&search=&size=0&status=done&width=247" srcset="undefined" alt=""><br /><code>EntityResolver</code>接口的核心是<code>resolveEntity()</code>方法，<code>XMLMapperEntityResolver</code>是实现如下所示：</p>
 <pre><code class="java">package org.apache.ibatis.builder.xml;
 
 import java.io.IOException;

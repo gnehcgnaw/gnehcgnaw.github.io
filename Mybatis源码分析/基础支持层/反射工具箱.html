@@ -15,7 +15,7 @@
   <meta name="description" content="">
   <meta name="author" content="gnehcgnaw">
   <meta name="keywords" content="">
-  <title>MartinAdam&#39;s blog</title>
+  <title>反射工具箱 ~ MartinAdam&#39;s blog</title>
 
   <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
@@ -36,7 +36,7 @@
 
 
 <body>
-  <header style="height: 100vh;">
+  <header style="height: 70vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -107,12 +107,43 @@
             </span>
 
             
+              <br>
+              
+                <p class="mt-3">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>&nbsp;
+                  星期二, 十一月 26日 2019, 8:39 晚上
+                </p>
+              
+
+              <p>
+                
+                  
+                  &nbsp;<i class="far fa-chart-bar"></i>
+                  <span class="post-count">
+                    518 字
+                  </span>&nbsp;
+                
+
+                
+                  
+                  &nbsp;<i class="far fa-clock"></i>
+                  <span class="post-count">
+                      2 分钟
+                  </span>&nbsp;
+                
+
+                
+                  <!-- 不蒜子统计文章PV -->
+                  
+                  &nbsp;<i class="far fa-eye" aria-hidden="true"></i>&nbsp;
+                  <span id="busuanzi_container_page_pv">
+                    <span id="busuanzi_value_page_pv"></span> 次
+                  </span>&nbsp;
+                
+              </p>
+            
           </div>
 
-          
-            <div class="scroll-down-bar">
-              <i class="fas fa-angle-down scroll-down-arrow"></i>
-            </div>
           
         </div>
       </div>
@@ -121,199 +152,111 @@
 
   <main>
     
-      <div class="container nopadding-md">
-        <div class="py-5 z-depth-3" id="board">
-          
-          <div class="container">
-            <div class="row">
-              <div class="col-12 col-md-10 m-auto">
-                
+      
 
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="py-5 z-depth-3" id="board">
+        <div class="post-content mx-auto" id="post">
+          <div class="markdown-body">
+            <h1 id="反射工具箱"><a href="#反射工具箱" class="headerlink" title="反射工具箱"></a>反射工具箱</h1><h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h1><p>​        Mybatis在进行参数处理、结果集映射等操作时，会涉及大量的反射操作。Java中的反射虽然功能强大，但是代码编写起来比较复杂容易出错，为了简化反射操作的相关代码，Mybatis提供了专门的反射模块，该模块位于<code>org.apache.ibatis.reflection</code>包中，它对常见的反射操作做了封装，提供了更加简洁方便的反射API。</p>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126092626-rve1an.png" srcset="undefined" style="zoom:67%;" />
 
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E5%8F%8D%E5%B0%84%E5%B7%A5%E5%85%B7%E7%AE%B1.html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126092626-rve1an.png" srcset="undefined" alt="反射工具箱" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E5%8F%8D%E5%B0%84%E5%B7%A5%E5%85%B7%E7%AE%B1.html">
-        <p class="h4 index-header">反射工具箱</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">反射工具箱1. 简介​        Mybatis在进行参数处理、结果集映射等操作时，会涉及大量的反射操作。Java中的反射虽然功能强大，但是代码编写起来比较复杂容易出错，为了简化反射操作的相关代码，Mybatis提供了专门的反射模块，该模块位于org.apache.ibatis.reflection包中，它对常见的反射操作做了封装，提供了更加简洁方便的反射API。
-
-
-2. Reflector&amp;ReflectorFactory2.1. Reflector​         Reflector是Mybatis中反射模块的基础，每个Reflector对象都对应一个类，在Reflector中缓存了反射操作需要使用的类的元信息。Reflector中各个字段的含义如下所示：
-/**
+<h1 id="2-Reflector-amp-ReflectorFactory"><a href="#2-Reflector-amp-ReflectorFactory" class="headerlink" title="2. Reflector&amp;ReflectorFactory"></a>2. Reflector&amp;ReflectorFactory</h1><h2 id="2-1-Reflector"><a href="#2-1-Reflector" class="headerlink" title="2.1. Reflector"></a>2.1. Reflector</h2><p>​         <code>Reflector</code>是<code>Mybatis</code>中反射模块的基础，每个<code>Reflector</code>对象都对应一个类，在Reflector中缓存了反射操作需要使用的类的元信息。Reflector中各个字段的含义如下所示：</p>
+<pre><code class="java">/**
    * 对应类的类型
    */
   private final Class&lt;?&gt; type;
   /**
    * 可读属性的名称集合，可读属性就是存在相应的getter方法的属性，初始值为空数组
    */
-  private final String[] readablePropert</div>
-        </div>
-      </a>
+  private final String[] readablePropertyNames;
+  /**
+   * 可写属性的名称集合，可写属性就是存在相应setter方法的属性，初始值为空数组
+   */
+  private final String[] writablePropertyNames;
+  /**
+   * 记录了属性相应的setter方法，key是属性名称，value是Invoke对象，它是对setter方法对应Method对象的封装，后面会详细介绍
+   */
+  private final Map&lt;String, Invoker&gt; setMethods = new HashMap&lt;&gt;();
+  /**
+   * 记录了属性相应的getter方法集合，key是属性名称，value是Invoke对象，
+   */
+  private final Map&lt;String, Invoker&gt; getMethods = new HashMap&lt;&gt;();
+  /**
+   * 记录了属性相应的setter方法的参数值类型，key是属性名称，value是setter方法的参数类型
+   */
+  private final Map&lt;String, Class&lt;?&gt;&gt; setTypes = new HashMap&lt;&gt;();
+  /**
+   * 记录了属性相应的getter方法的返回值类型，key是属性名称，value是getter方法的返回值类型
+   */
+  private final Map&lt;String, Class&lt;?&gt;&gt; getTypes = new HashMap&lt;&gt;();
+  /**
+   * 记录了默认的构造方法
+   */
+  private Constructor&lt;?&gt; defaultConstructor;
+  /**
+   * 记录了所有属性名称的集合
+   */
+  private Map&lt;String, String&gt; caseInsensitivePropertyMap = new HashMap&lt;&gt;();</code></pre>
+<p>​        在<code>Reflector</code>的构造方法中会解析指定的<code>Class</code>对象，并填充上述集合，具体实现如下所示：    </p>
 
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-26&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html" target="_self">
-          <img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191125223756-R177Lc.png" srcset="undefined" alt="解析器模块" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html">
-        <p class="h4 index-header">解析器模块</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">解析器模块1. 简介​    解析器模块，对应的包是parsing，如下图所示：
-
-
-解析器模块，主要提供了两个功能：
-
-对XPath进行封装，为Mybatis初始化时解析mybatis-config.xml配置文件以及mapper映射配置文件提供支持。
-为处理动态SQL语句中的占位符提供支持。
-
-2. XML解析方式在mybatis中涉及到多个XML配置文件，因此我们首先要介绍XML解析的相关内容。XML解析的常见的方式有三种：
-
-DOM（document object model）解析方式
-SAX（simple api for xml）解析方式
-Java6版本开始，JDK致辞的StAX（streaming api for xml）解析方式。
-
-DOM是基于树形结构的XML解析方式，它将整个XML文档读入内存并构建成一个DOM树,基于这棵树形结构对各个节点（node）进行操作。XML文档中的每一个成分都是一个节点：整个文档是一个文档节点，每个XML标签对应一个元素节点，包含在XML标签中的文本是文本节点，每一个XML属性是一个属性节点，注释属于注释节点。
-&lt;?xml versi</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-25&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mac%E6%8A%80%E5%B7%A7/iterm2%E4%BF%9D%E5%AD%98%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95.html" target="_self">
-          <img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191115204208-mTkAoN.png" srcset="undefined" alt="iterm2保存密码登录" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mac%E6%8A%80%E5%B7%A7/iterm2%E4%BF%9D%E5%AD%98%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95.html">
-        <p class="h4 index-header">iterm2保存密码登录</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">iterm2保存密码登录1. 编写item2login.sh脚本文件#!/usr/bin/expect  
-
-set timeout 30  
-spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]  
-expect {  
-       &quot;(yes/no)?&quot;  
-       {send &quot;yes\n&quot;;exp_continue}  
-       &quot;password:&quot;  
-       {send &quot;[lindex $argv 3]\n&quot;}  
-}  
-interact 
-
-
-lindex $argv 0 : port
-
-lindex $argv 1：username
-
-lindex $argv 2：IP
-
-lindex $argv 3：password
-
-
-2. 修改item2login.sh权限将item2login.sh移动到/usr/local/bin目录下，然后使用chmod 777 item2login.sh修改脚本</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-15&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-
-
-
-
-              </div>
-            </div>
+            <hr>
+          </div>
+          <br>
+          <div>
+            <p>
+            
+              <span>
+                <i class="iconfont icon-inbox"></i>
+                
+                  <a class="hover-with-bg" href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>
+                  &nbsp;
+                
+                  <a class="hover-with-bg" href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>
+                  &nbsp;
+                
+              </span>&nbsp;&nbsp;
+            
+            
+              <span>
+                <i class="iconfont icon-tag"></i>
+                
+                  <a class="hover-with-bg" href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>
+                
+              </span>
+            
+            </p>
+            
+              <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+            
           </div>
         </div>
       </div>
+    </div>
+    <div class="d-none d-lg-block col-lg-2 toc-container">
+      
+  <div id="toc">
+    <p class="h4"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+    <div id="tocbot"></div>
+  </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- custom -->
+
+
+<!-- Comments -->
+<div class="col-lg-7 mx-auto nopadding-md">
+  <div class="container comments mx-auto" id="comments">
+    
+  </div>
+</div>
+
     
   </main>
 
@@ -388,6 +331,11 @@ lindex $argv 3：password
 
 
 
+  
+    <script src="/lib/tocbot/tocbot.min.js" ></script>
+  
+  <script src="/js/post.js" ></script>
+
 
 
   <script src="/lib/smooth-scroll/smooth-scroll.min.js" ></script>
@@ -428,7 +376,7 @@ lindex $argv 3：password
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Man Always Remember Love Because Of Romance Only&nbsp;",
+        "反射工具箱&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

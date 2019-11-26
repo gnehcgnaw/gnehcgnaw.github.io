@@ -602,7 +602,9 @@ public class XMLMapperEntityResolver implements EntityResolver {
     }
     return builder.toString();
   }</code></pre>
-<p>占位符有<code>TokenHandler</code>接口的实现进行解析，<code>TokenHandler</code>接口总共有四个实现，如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2019/png/285619/1574694813234-035be2c9-ab7c-437c-81af-6c70901b3fb0.png#align=left&display=inline&height=284&originHeight=284&originWidth=1842&search=&size=0&status=done&width=1842" srcset="undefined" alt=""><br />通过对<code>PropertyParser.parse()</code>方法的介绍，我们知道了<code>PropertyParser</code>是使用<code>VariableTokenHandler</code>与<code>GenericTokenParser</code>配合完成占位符解析的，<code>VariableTokenHandler</code>是<code>PropertyReslover</code>中的一个私有静态内部类，其字段的含义如下所示：</p>
+<p>占位符有<code>TokenHandler</code>接口的实现进行解析，<code>TokenHandler</code>接口总共有四个实现，如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191125231024-cKlwtn.png" srcset="undefined" alt=""></p>
+<p>通过对<code>PropertyParser.parse()</code>方法的介绍，我们知道了<code>PropertyParser</code>是使用<code>VariableTokenHandler</code>与<code>GenericTokenParser</code>配合完成占位符解析的，<code>VariableTokenHandler</code>是<code>PropertyReslover</code>中的一个私有静态内部类，其字段的含义如下所示：</p>
 <pre><code class="java"> /**
      * &lt;properties&gt;&lt;properties/&gt;节点下定义的键值对，用于替换占位符
      */

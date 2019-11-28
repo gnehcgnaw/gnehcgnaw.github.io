@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="author" content="gnehcgnaw">
+  <meta name="keywords" content="">
+  <title>类型转换 ~ MartinAdam&#39;s blog</title>
+
+  <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
+<link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
+<link rel="stylesheet" href="/lib/mdbootstrap/css/mdb.min.css"  >
+<link rel="stylesheet" href="/lib/github-markdown/github-markdown.min.css"  >
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1067060_qzomjdt8bmp.css">
+
+
+  <link rel="stylesheet" href="/lib/prettify/tomorrow-night-eighties.min.css"  >
+
+<link rel="stylesheet" href="/css/main.css"  >
+
+
+  <link rel="stylesheet" href="/lib/fancybox/jquery.fancybox.min.css"  >
+
+
+</head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>MartinAdam&#39;s blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+        
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">Archives</a>
+          </li>
+        
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">Categories</a>
+          </li>
+        
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">Tags</a>
+          </li>
+        
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">About</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+</nav>
+
+    <div class="view intro-2" id="background"
+         style="background: url('/img/default.png')no-repeat center center;
+           background-size: cover;
+           background-attachment: fixed;">
+      <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              <br>
+              
+                <p class="mt-3">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>&nbsp;
+                  星期三, 十一月 27日 2019, 8:39 晚上
+                </p>
+              
+
+              <p>
+                
+                  
+                  &nbsp;<i class="far fa-chart-bar"></i>
+                  <span class="post-count">
+                    2k 字
+                  </span>&nbsp;
+                
+
+                
+                  
+                  &nbsp;<i class="far fa-clock"></i>
+                  <span class="post-count">
+                      8 分钟
+                  </span>&nbsp;
+                
+
+                
+                  <!-- 不蒜子统计文章PV -->
+                  
+                  &nbsp;<i class="far fa-eye" aria-hidden="true"></i>&nbsp;
+                  <span id="busuanzi_container_page_pv">
+                    <span id="busuanzi_value_page_pv"></span> 次
+                  </span>&nbsp;
+                
+              </p>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="py-5 z-depth-3" id="board">
+        <div class="post-content mx-auto" id="post">
+          <div class="markdown-body">
+            <h1 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h1><p>#1. 概述</p>
+<p>​        JDBC数据类型与Java语言中的数据类型并不是完全对应的，所以在<code>PreparedStatement</code>为<code>SQL</code>语句绑定参数是，需要从<code>Java</code>类型转换成<code>JDBC</code>类型，而从<code>ResultSet</code>中获取数据时，则需要从<code>JDBC</code>类型转换成<code>Java</code>类型。<code>Mybatis</code>使用类型转换器完成上述两种转换。据图如下图所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127092014-iVyREJ.png" srcset="undefined" alt=""></p>
+<p>​        在<code>Mybatis</code>中使用<code>JdbcType</code>这种枚举类型代表<code>JDBC</code>中的数据类型，该枚举类型中定义了<code>TYPE_CODE</code>字段，记录了<code>JDBC</code>类中在<code>java.sql.Types</code>中相应的常量编码，并通过一个静态集合<code>codeLookUp（HashMap&lt;Integer,JdbcType&gt;类型）</code>维护了常量编码与<code>JdbcType</code>之间的对应关系。</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127093418-Gzcley.png" srcset="undefined" alt=""></p>
+<h1 id="2-TypeHandler"><a href="#2-TypeHandler" class="headerlink" title="2. TypeHandler"></a>2. TypeHandler</h1><p>​        Mybatis中所有的类型转换器都继承了<code>TypeHandler</code>接口，在<code>TypeHandler</code>接口中定义了如下四种方法，这四种方法分为两类：</p>
+<ul>
+<li><code>setParameter()</code>方法<ul>
+<li>负责将数据由<code>Java</code>类型转换成<code>JdbcType</code>类型</li>
+</ul>
+</li>
+<li><code>getResultSet()</code>方法<ul>
+<li>负责将数据由<code>JdbcType</code>类型转换成<code>Java</code>类型</li>
+</ul>
+</li>
+</ul>
+<pre><code class="java">package org.apache.ibatis.type;
+
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * 类型处理器
+ * 说白了typeHandlers就是用来完成javaType和jdbcType之间的转换
+ * @author Clinton Begin
+ */
+public interface TypeHandler&lt;T&gt; {
+
+  /**
+   * 通过PreparedStatement为Sql语句绑定参数是，会将数据从Java类型转换成JdbcType类型
+   * @param ps
+   * @param i 转换第几个参数
+   * @param parameter 参数
+   * @param jdbcType  要转换的jdbcType的类型
+   * @throws SQLException
+   */
+  void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
+
+  /**
+   * 从ResultSet中获取数据时会调用此方法，将数据有JdbcType类型转换为Java类型
+   * @param columnName Colunm name, when configuration &lt;code&gt;useColumnLabel&lt;/code&gt; is &lt;code&gt;false&lt;/code&gt;
+   */
+  T getResult(ResultSet rs, String columnName) throws SQLException;
+
+  T getResult(ResultSet rs, int columnIndex) throws SQLException;
+
+  T getResult(CallableStatement cs, int columnIndex) throws SQLException;
+
+}</code></pre>
+<p>​        为了方便用户自定义<code>TypeHandler</code>实现，<code>Mybatis</code>提供了<code>BaseTypeHandler</code>这个抽象类，它实现了<code>TypeHandler</code>几口，并继承了<code>TypeReference</code>抽象类，其继承结构如下所示：</p>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127095043-dUqC8a.png" srcset="undefined" style="zoom:50%;" />
+
+<p>在<code>BaseTypeHandler</code>中实现了<code>setParameter()</code>和<code>getResult()</code>方法，具体如下所示。</p>
+<pre><code class="java">/**
+   * 在设置参数的时候，只处理为null的数据，不为空的数据都交给了子类实现
+   * @param ps
+   * @param i 转换第几个参数
+   * @param parameter 参数
+   * @param jdbcType  要转换的jdbcType的类型
+   * @throws SQLException
+   */
+  @Override
+  public void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
+    if (parameter == null) {
+      if (jdbcType == null) {
+        throw new TypeException(&quot;JDBC requires that the JdbcType must be specified for all nullable parameters.&quot;);
+      }
+      try {
+        ps.setNull(i, jdbcType.TYPE_CODE);
+      } catch (SQLException e) {
+        throw new TypeException(&quot;Error setting null for parameter #&quot; + i + &quot; with JdbcType &quot; + jdbcType + &quot; . &quot;
+              + &quot;Try setting a different JdbcType for this parameter or a different jdbcTypeForNull configuration property. &quot;
+              + &quot;Cause: &quot; + e, e);
+      }
+    } else {
+      try {
+        //参数不为空，交给子类处理
+        setNonNullParameter(ps, i, parameter, jdbcType);
+      } catch (Exception e) {
+        throw new TypeException(&quot;Error setting non null for parameter #&quot; + i + &quot; with JdbcType &quot; + jdbcType + &quot; . &quot;
+              + &quot;Try setting a different JdbcType for this parameter or a different configuration property. &quot;
+              + &quot;Cause: &quot; + e, e);
+      }
+    }
+  }
+
+public abstract void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;</code></pre>
+<pre><code class="java">
+  @Override
+  public T getResult(ResultSet rs, String columnName) throws SQLException {
+    try {
+      return getNullableResult(rs, columnName);
+    } catch (Exception e) {
+      throw new ResultMapException(&quot;Error attempting to get column &#39;&quot; + columnName + &quot;&#39; from result set.  Cause: &quot; + e, e);
+    }
+  }
+
+  @Override
+  public T getResult(ResultSet rs, int columnIndex) throws SQLException {
+    try {
+      return getNullableResult(rs, columnIndex);
+    } catch (Exception e) {
+      throw new ResultMapException(&quot;Error attempting to get column #&quot; + columnIndex + &quot; from result set.  Cause: &quot; + e, e);
+    }
+  }
+
+  @Override
+  public T getResult(CallableStatement cs, int columnIndex) throws SQLException {
+    try {
+      return getNullableResult(cs, columnIndex);
+    } catch (Exception e) {
+      throw new ResultMapException(&quot;Error attempting to get column #&quot; + columnIndex + &quot; from callable statement.  Cause: &quot; + e, e);
+    }
+  }
+  /**
+   * 3.5.0版本之后getResult方法，不管是空还是非空数据都要交给子类去处理
+   * @param columnName Colunm name, when configuration &lt;code&gt;useColumnLabel&lt;/code&gt; is &lt;code&gt;false&lt;/code&gt;
+   */
+  public abstract T getNullableResult(ResultSet rs, String columnName) throws SQLException;
+
+  public abstract T getNullableResult(ResultSet rs, int columnIndex) throws SQLException;
+
+  public abstract T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException;</code></pre>
+<p>​        <strong>需要注意的是：</strong>在<code>Mybatis3.5</code>及其之后版本，<code>BaseTypeHandler.setParemeter()</code>只处理空参，非空参数交于子类处理，<code>BaseTypeHandler.getResult()</code>不管是空值还是非空都交于子类处理，而<code>Mybatis3.5</code>版本之前，<code>BaseTypeHandler.setParemeter()</code>和<code>BaseTypeHandler.getResult()</code>都是只对空参进行处理的。</p>
+<p>​        <code>BaseTypeHandler</code>的实现类是比较多的，但是实现比较简单。</p>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127101750-TJLaJn.png" srcset="undefined" style="zoom:67%;" />
+
+<p>这里以<code>IntergerTypeHandler</code>为例简单介绍：</p>
+<pre><code class="java">package org.apache.ibatis.type;
+
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * @author Clinton Begin
+ */
+public class IntegerTypeHandler extends BaseTypeHandler&lt;Integer&gt; {
+
+  @Override
+  public void setNonNullParameter(PreparedStatement ps, int i, Integer parameter, JdbcType jdbcType)
+      throws SQLException {
+    //调用PreparedStatement.setInt()实现参数绑定
+    ps.setInt(i, parameter);
+  }
+
+  @Override
+  public Integer getNullableResult(ResultSet rs, String columnName)
+      throws SQLException {
+    //调用ResultSet.getInt获取指定列值
+    int result = rs.getInt(columnName);
+    return result == 0 &amp;&amp; rs.wasNull() ? null : result;
+  }
+
+  @Override
+  public Integer getNullableResult(ResultSet rs, int columnIndex)
+      throws SQLException {
+    //调用ResultSet.getInt获取指定列值
+    int result = rs.getInt(columnIndex);
+    return result == 0 &amp;&amp; rs.wasNull() ? null : result;
+  }
+
+  @Override
+  public Integer getNullableResult(CallableStatement cs, int columnIndex)
+    //调用ResultSet.getInt获取指定列值
+      throws SQLException {
+    int result = cs.getInt(columnIndex);
+    return result == 0 &amp;&amp; cs.wasNull() ? null : result;
+  }
+}</code></pre>
+<p>​        一般情况下，<code>TypeHandler</code>用于完成单个参数及其单个列值的类型转换，如果存在多列值转换成一个<code>Java</code>对象的需求，应该优先考虑使用在映射文件中定义合适的映射规则（<code>&lt;resultMap&gt;</code>节点）完成映射。</p>
+<h1 id="3-TypeHandlerRegistry"><a href="#3-TypeHandlerRegistry" class="headerlink" title="3. TypeHandlerRegistry"></a>3. TypeHandlerRegistry</h1><p>​        介绍完<code>TypeHandler</code>接口及其功能之后，<code>Mybatis</code>如何管理众多的<code>TypeHandler</code>接口实现，如何知道何时使用哪个<code>TypeHandler</code>接口实现完成转换呢？这是有本小节介绍的<code>TypeHandlerRegistry</code>完成的，在<code>Mybatis</code>初始化过程中，会为所有已知的<code>TypeHandler</code>创建对象，并实现注册到<code>TypeHandlerRegistry</code>中，有<code>TypeHandlerRegistry</code>负责管理这些<code>TypeHandler</code>对象。<br>​        下面先来看看<code>TypeHandlerRegistry</code>中的核心字段的含义：</p>
+<pre><code class="java">  /**
+   * 记录jdbcType与TypeHandler之间的对应关系，其中JdbcType是一个枚举类型，它定义对应了的JDBC类型
+   * 该集合主要用于从结果集读取数据是，将数据从jdbc类型转换成Java类型
+   */
+  private final Map&lt;JdbcType, TypeHandler&lt;?&gt;&gt;  jdbcTypeHandlerMap = new EnumMap&lt;&gt;(JdbcType.class);
+  /**
+   * 记录了Java类型向指定的jdbcType转换时，需要使用的TypeHandler对象。
+   * 例如：Java类型中的String 可能转换为数据库的char、varchar等多种类型，所以存在一对多关系
+   */
+  private final Map&lt;Type, Map&lt;JdbcType, TypeHandler&lt;?&gt;&gt;&gt; typeHandlerMap = new ConcurrentHashMap&lt;&gt;();
+  /**
+   * 未知类型TypeHandler
+   */
+  private final TypeHandler&lt;Object&gt; unknownTypeHandler;
+  /**
+   * 记录了全部的TypeHandler的类型以及该类型相应的TypeHandler对象
+   */
+  private final Map&lt;Class&lt;?&gt;, TypeHandler&lt;?&gt;&gt; allTypeHandlersMap = new HashMap&lt;&gt;();
+
+  /**
+   * 空TypeHandler集合的标识
+   */
+  private static final Map&lt;JdbcType, TypeHandler&lt;?&gt;&gt; NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
+
+  /**
+   * 默认枚举类型处理器
+   */
+  private Class&lt;? extends TypeHandler&gt; defaultEnumTypeHandler = EnumTypeHandler.class;</code></pre>
+<h2 id="3-1-TypeHandlerRegistry构造方法"><a href="#3-1-TypeHandlerRegistry构造方法" class="headerlink" title="3.1. TypeHandlerRegistry构造方法"></a>3.1. TypeHandlerRegistry构造方法</h2><p><code>TypeHandlerRegistry</code>构造中综合起来做了三步操作：</p>
+<ol>
+<li>创建了一个<code>Configuration</code>，或者通过<code>mybatis-config.xml</code>的初始化传入一个<code>Configuration</code>到<code>TypeHandlerRegistry</code>构造中；</li>
+<li>利用传入的<code>configuration</code>对象，创建一个<code>UnknownTpyeHandler</code>，以备后续使用；</li>
+<li>注册一堆<code>Mybatis</code>为我们提供的默认的<code>TypeHandler</code>。</li>
+</ol>
+<h2 id="3-2-注册TypeHandler对象"><a href="#3-2-注册TypeHandler对象" class="headerlink" title="3.2. 注册TypeHandler对象"></a>3.2. 注册TypeHandler对象</h2><p>TypeHandlerRegistry.register()方法实现了注册TypeHandler对象的功能，register()方法有多个重载，这些重载之间的调用关系如下图所示。</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127172443-pn2dhu.png" srcset="undefined" alt=""></p>
+<p>由上图可以看出，多数的register()方法最终会调用重载7完成注册功能，所以先分析重载7，该方法有三个参数分别是：</p>
+<ul>
+<li><code>Type javaType</code></li>
+<li><code>JdbcType jdbcType</code></li>
+<li><code>TypeHandler&lt;T&gt; handler</code></li>
+</ul>
+<pre><code class="java"> /**
+   * 最终调用到的重载方法
+   * @param javaType  能够处理的Java类型
+   * @param jdbcType
+   * @param handler
+   */
+  // 7
+  private void register(Type javaType, JdbcType jdbcType, TypeHandler&lt;?&gt; handler) {
+    //检测是否明确指定了TypeHandler能够处理的Java类型
+    if (javaType != null) {
+      //获取指定Java类型在typeHandlerMap集合中对应的TypeHandler集合
+      Map&lt;JdbcType, TypeHandler&lt;?&gt;&gt; map = typeHandlerMap.get(javaType);
+      //如果map为空或者等于NULL_TYPE_HANDLER_MAP，创建新的TypeHandler集合，并添加到typeHandlerMap中
+      if (map == null || map == NULL_TYPE_HANDLER_MAP) {
+        map = new HashMap&lt;&gt;();
+        typeHandlerMap.put(javaType, map);
+      }
+      //将TypeHandler对象注册到typeHandlerMap集合中
+      map.put(jdbcType, handler);
+    }
+    //向allTypeHandlersMap集合注册TypeHandler类型和对应的TypeHandler对象
+    allTypeHandlersMap.put(handler.getClass(), handler);
+  }</code></pre>
+<h2 id="3-3-查找TypeHandler"><a href="#3-3-查找TypeHandler" class="headerlink" title="3.3. 查找TypeHandler"></a>3.3. 查找TypeHandler</h2><p>介绍完注册TypeHandler对象的功能之后，再来介绍TypeHandlerRegistry提供的查找TypeHandler对象的功能。</p>
+
+            <hr>
+          </div>
+          <br>
+          <div>
+            <p>
+            
+              <span>
+                <i class="iconfont icon-inbox"></i>
+                
+                  <a class="hover-with-bg" href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>
+                  &nbsp;
+                
+                  <a class="hover-with-bg" href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>
+                  &nbsp;
+                
+              </span>&nbsp;&nbsp;
+            
+            
+              <span>
+                <i class="iconfont icon-tag"></i>
+                
+                  <a class="hover-with-bg" href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>
+                
+              </span>
+            
+            </p>
+            
+              <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-none d-lg-block col-lg-2 toc-container">
+      
+  <div id="toc">
+    <p class="h4"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+    <div id="tocbot"></div>
+  </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- custom -->
+
+
+<!-- Comments -->
+<div class="col-lg-7 mx-auto nopadding-md">
+  <div class="container comments mx-auto" id="comments">
+    
+  </div>
+</div>
+
+    
+  </main>
+
+  
+    <a class="z-depth-1" id="scroll-top-button" href="#" role="button">
+      <i class="fa fa-chevron-up scroll-top-arrow" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    <br>
+
+    
+  
+    <!-- 不蒜子统计PV -->
+    
+    &nbsp;<span id="busuanzi_container_site_pv">总访问量 
+          <span id="busuanzi_value_site_pv"></span> 次</span>&nbsp;
+  
+  
+    <!-- 不蒜子统计UV -->
+    
+    &nbsp;<span id="busuanzi_container_site_uv">总访客数 
+            <span id="busuanzi_value_site_uv"></span> 人</span>&nbsp;
+  
+  <br>
+
+
+
+    
+
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="/lib/jquery/jquery.min.js" ></script>
+<script src="/lib/popper/popper.min.js" ></script>
+<script src="/lib/bootstrap/js/bootstrap.min.js" ></script>
+<script src="/lib/mdbootstrap/js/mdb.min.js" ></script>
+<script src="/js/main.js" ></script>
+
+
+  <script src="/js/lazyload.js" ></script>
+
+
+
+  
+    <script src="/lib/tocbot/tocbot.min.js" ></script>
+  
+  <script src="/js/post.js" ></script>
+
+
+
+  <script src="/lib/smooth-scroll/smooth-scroll.min.js" ></script>
+
+
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+<!-- Plugins -->
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+  <script src="/lib/prettify/prettify.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      $('pre').addClass('prettyprint  linenums');
+      prettyPrint();
+    })
+  </script>
+
+
+
+  <script src="/lib/typed/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "类型转换&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script src="/lib/anchor/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "false",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      getSearchFile(path);
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script src="/lib/fancybox/jquery.fancybox.min.js" ></script>
+  <script>
+    $("#post img:not(.no-zoom img, img[no-zoom])").each(
+      function () {
+        var element = document.createElement("a");
+        $(element).attr("data-fancybox", "images");
+        $(element).attr("href", $(this).attr("src"));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>

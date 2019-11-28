@@ -161,8 +161,7 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h1><p>#1. 概述</p>
-<p>​        JDBC数据类型与Java语言中的数据类型并不是完全对应的，所以在<code>PreparedStatement</code>为<code>SQL</code>语句绑定参数是，需要从<code>Java</code>类型转换成<code>JDBC</code>类型，而从<code>ResultSet</code>中获取数据时，则需要从<code>JDBC</code>类型转换成<code>Java</code>类型。<code>Mybatis</code>使用类型转换器完成上述两种转换。据图如下图所示：</p>
+            <h1 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h1><h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>​        JDBC数据类型与Java语言中的数据类型并不是完全对应的，所以在<code>PreparedStatement</code>为<code>SQL</code>语句绑定参数是，需要从<code>Java</code>类型转换成<code>JDBC</code>类型，而从<code>ResultSet</code>中获取数据时，则需要从<code>JDBC</code>类型转换成<code>Java</code>类型。<code>Mybatis</code>使用类型转换器完成上述两种转换。据图如下图所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127092014-iVyREJ.png" srcset="undefined" alt=""></p>
 <p>​        在<code>Mybatis</code>中使用<code>JdbcType</code>这种枚举类型代表<code>JDBC</code>中的数据类型，该枚举类型中定义了<code>TYPE_CODE</code>字段，记录了<code>JDBC</code>类中在<code>java.sql.Types</code>中相应的常量编码，并通过一个静态集合<code>codeLookUp（HashMap&lt;Integer,JdbcType&gt;类型）</code>维护了常量编码与<code>JdbcType</code>之间的对应关系。</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127093418-Gzcley.png" srcset="undefined" alt=""></p>

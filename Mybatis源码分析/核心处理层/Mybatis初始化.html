@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.2k 字
+                    3.6k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      14 分钟
+                      15 分钟
                   </span>&nbsp;
                 
 
@@ -468,7 +468,35 @@
     configuration.setLogPrefix(props.getProperty(&quot;logPrefix&quot;));
     configuration.setConfigurationFactory(resolveClass(props.getProperty(&quot;configurationFactory&quot;)));
   }</code></pre>
-<h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2>
+<h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><p>在实际生产中，同一项目可能分为开发、测试和生产多个不同的环境，每个环境的配置可能不尽相同。Mybatis可以配置多个<code>&lt;environment&gt;</code>节点，每个<code>&lt;environment&gt;</code>节点对应一种环境的配置。但是需要注意的是，尽管可以配置多环境，每个SqlSessionFactory实例只能选择其一。</p>
+<p>XMLConfigBuilder.environmentElement()方法负责解析<environment>的相关配置，它会根据XMLConfigBuilder.environment字段值确定要使用的<environment>配置，之后创建对应的TransactionFactory和DataSource对象，并封装近Environment对象中。environmentElement()方法的具体实现如下：</p>
+<pre><code class="java"> private void environmentsElement(XNode context) throws Exception {
+    if (context != null) {
+      //未指定XMLConfigBuilder#environment字段的值，那么使用default属性指定的&lt;environment&gt;&lt;/environment&gt;
+      if (environment == null) {
+        environment = context.getStringAttribute(&quot;default&quot;);
+      }
+      for (XNode child : context.getChildren()) {
+        String id = child.getStringAttribute(&quot;id&quot;);
+        //检测字段与XMLConfigBuilder#environment字段是否匹配
+        if (isSpecifiedEnvironment(id)) {
+          //创建TransactionFactory：具体实现是先通过TypeAliasRegistry解析别名之后，实例化TransactionFactory
+          TransactionFactory txFactory = transactionManagerElement(child.evalNode(&quot;transactionManager&quot;));
+          //创建DataSourceFactory然后得到DataSource
+          DataSourceFactory dsFactory = dataSourceElement(child.evalNode(&quot;dataSource&quot;));
+          DataSource dataSource = dsFactory.getDataSource();
+          //创建Environment对象，Environment中封装了上面创建的TransactionFactory和DataSource对象，这里应用的是建造者模式
+          Environment.Builder environmentBuilder = new Environment.Builder(id)
+              .transactionFactory(txFactory)
+              .dataSource(dataSource);
+          //将Environment对象，记录在Configuration.environment字段中
+          configuration.setEnvironment(environmentBuilder.build());
+        }
+      }
+    }
+  }
+</code></pre>
+<h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2>
             <hr>
           </div>
           <br>

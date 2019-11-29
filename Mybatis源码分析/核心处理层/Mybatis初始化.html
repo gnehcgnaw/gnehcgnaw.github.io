@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    2k 字
+                    2.4k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      8 分钟
+                      10 分钟
                   </span>&nbsp;
                 
 
@@ -330,11 +330,75 @@
     }
   }
 </code></pre>
-<h2 id="3-2-解析-lt-settings-gt-节点"><a href="#3-2-解析-lt-settings-gt-节点" class="headerlink" title="3.2. 解析&lt;settings&gt;节点"></a>3.2. 解析<code>&lt;settings&gt;</code>节点</h2><p>XMLConfigBuilder.settingsAsProperties()方法负责解析<settings>节点，在<settings>节点下的配置是<strong>Mybatis全局性的配置</strong>，它们会改变Mybatis的运行时行为，具体的配置项的含义请阅读参考<a href="https://mybatis.org/mybatis-3/configuration.html#settings" target="_blank" rel="noopener">Mybatis官方文档</a>。需要注意的是，在Mybatis初始化时，这些全局配置信息都会被记录到Configuration对象的对应属性中。例如，开发人员可以通过设置————————。</p>
-<p>在Configuration中存在一个同名的相应字段，如下：</p>
-<p>settingsAsProperties()方法的解析方式和propertiesElement()方法类似，但是多了使用MetaClass检测key指定的属性在Configuration类中是否有对应setter方法的步骤。settingsAsProperties()方法的代码如下所示：</p>
-<pre><code class="java"></code></pre>
-
+<h2 id="3-2-解析-lt-settings-gt-节点"><a href="#3-2-解析-lt-settings-gt-节点" class="headerlink" title="3.2. 解析&lt;settings&gt;节点"></a>3.2. 解析<code>&lt;settings&gt;</code>节点</h2><p><code>XMLConfigBuilder.settingsAsProperties()</code>方法负责解析<code>&lt;settings&gt;</code>节点，在<code>&lt;settings&gt;</code>节点下的配置是<strong>Mybatis全局性的配置</strong>，它们会改变<code>Mybatis</code>的运行时行为，具体的配置项的含义请阅读参考<a href="https://mybatis.org/mybatis-3/configuration.html#settings" target="_blank" rel="noopener">Mybatis官方文档</a>。需要注意的是，在<code>Mybatis</code>初始化时，这些全局配置信息都会被记录到<code>Configuration</code>对象的对应属性中。例如，开发人员可以通过设置————————。</p>
+<p>在<code>Configuration</code>中存在一个同名的相应字段，如下：</p>
+<p><code>settingsAsProperties()</code>方法的解析方式和<code>propertiesElement()</code>方法类似，但是多了使用<code>MetaClass</code>检测<code>key</code>指定的属性在<code>Configuration</code>类中是否有对应<code>setter</code>方法的步骤。<code>settingsAsProperties()</code>方法的代码如下所示：</p>
+<pre><code class="java">  private Properties settingsAsProperties(XNode context) {
+    if (context == null) {
+      return new Properties();
+    }
+    Properties props = context.getChildrenAsProperties();
+    // Check that all settings are known to the configuration class
+    MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
+    //使用`MetaClass`检测`key`指定的属性在`Configuration`类中是否有对应`setter`方法的步骤
+    for (Object key : props.keySet()) {
+      if (!metaConfig.hasSetter(String.valueOf(key))) {
+        throw new BuilderException(&quot;The setting &quot; + key + &quot; is not known.  Make sure you spelled it correctly (case sensitive).&quot;);
+      }
+    }
+    return props;
+  }</code></pre>
+<h2 id="3-3-设置vfsImpl和logImpl"><a href="#3-3-设置vfsImpl和logImpl" class="headerlink" title="3.3. 设置vfsImpl和logImpl"></a>3.3. 设置<code>vfsImpl</code>和<code>logImpl</code></h2><p>这两个参数一般不会去处理，所以我只罗列出来，不去解析：</p>
+<h3 id="3-3-1-设置vfsImpl"><a href="#3-3-1-设置vfsImpl" class="headerlink" title="3.3.1. 设置vfsImpl"></a>3.3.1. 设置vfsImpl</h3><p>参看VFS详解</p>
+<pre><code class="java">  private void loadCustomVfs(Properties props) throws ClassNotFoundException {
+    String value = props.getProperty(&quot;vfsImpl&quot;);
+    if (value != null) {
+      String[] clazzes = value.split(&quot;,&quot;);
+      for (String clazz : clazzes) {
+        if (!clazz.isEmpty()) {
+          @SuppressWarnings(&quot;unchecked&quot;)
+          Class&lt;? extends VFS&gt; vfsImpl = (Class&lt;? extends VFS&gt;)Resources.classForName(clazz);
+          configuration.setVfsImpl(vfsImpl);
+        }
+      }
+    }
+  }
+</code></pre>
+<h3 id="3-3-2-设置logImpl"><a href="#3-3-2-设置logImpl" class="headerlink" title="3.3.2. 设置logImpl"></a>3.3.2. 设置logImpl</h3><pre><code class="java">  private void loadCustomLogImpl(Properties props) {
+    Class&lt;? extends Log&gt; logImpl = resolveClass(props.getProperty(&quot;logImpl&quot;));
+    configuration.setLogImpl(logImpl);
+  }</code></pre>
+<h2 id="3-4-解析-lt-typeAliases-gt-节点"><a href="#3-4-解析-lt-typeAliases-gt-节点" class="headerlink" title="3.4. 解析&lt;typeAliases&gt;节点"></a>3.4. 解析<code>&lt;typeAliases&gt;</code>节点</h2><p><code>XMLConfigBuilder.typeAliasesElement()</code>负责解析<code>&lt;typeAliases&gt;</code>节点及其子节点，然后利用<a href="https://gnehcgnaw.github.io/Mybatis源码分析/基础支持层/类型转换.html#4-TypeAliasRegistry" target="_blank" rel="noopener">TypeAliasRegistry</a>完成别名的注册，具体实现如下所示：</p>
+<pre><code class="java">private void typeAliasesElement(XNode parent) {
+    if (parent != null) {
+      for (XNode child : parent.getChildren()) {
+        /**
+         * 指定报名，MyBatis 会在包名下面搜索需要的 Java Bean
+         * 每一个在包 domain.blog 中的 Java Bean，在没有注解的情况下，会使用 Bean 的首字母小写的非限定类名来作为它的别名。
+         * 比如 domain.blog.Author 的别名为 author；若有注解，则别名为其注解值 。
+         */
+        if (&quot;package&quot;.equals(child.getName())) {
+          String typeAliasPackage = child.getStringAttribute(&quot;name&quot;);
+          configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
+        } else {
+          String alias = child.getStringAttribute(&quot;alias&quot;);
+          String type = child.getStringAttribute(&quot;type&quot;);
+          try {
+            Class&lt;?&gt; clazz = Resources.classForName(type);
+            if (alias == null) {
+              typeAliasRegistry.registerAlias(clazz);
+            } else {
+              typeAliasRegistry.registerAlias(alias, clazz);
+            }
+          } catch (ClassNotFoundException e) {
+            throw new BuilderException(&quot;Error registering typeAlias for &#39;&quot; + alias + &quot;&#39;. Cause: &quot; + e, e);
+          }
+        }
+      }
+    }
+  }
+</code></pre>
+<h2 id="3-5-解析-lt-plugins-gt-节点"><a href="#3-5-解析-lt-plugins-gt-节点" class="headerlink" title="3.5. 解析&lt;plugins&gt;节点"></a>3.5. 解析<code>&lt;plugins&gt;</code>节点</h2>
             <hr>
           </div>
           <br>

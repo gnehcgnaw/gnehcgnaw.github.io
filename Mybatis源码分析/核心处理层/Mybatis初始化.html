@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    2.4k 字
+                    3.2k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      10 分钟
+                      14 分钟
                   </span>&nbsp;
                 
 
@@ -398,7 +398,74 @@
     }
   }
 </code></pre>
-<h2 id="3-5-解析-lt-plugins-gt-节点"><a href="#3-5-解析-lt-plugins-gt-节点" class="headerlink" title="3.5. 解析&lt;plugins&gt;节点"></a>3.5. 解析<code>&lt;plugins&gt;</code>节点</h2>
+<h2 id="3-5-解析-lt-plugins-gt-节点"><a href="#3-5-解析-lt-plugins-gt-节点" class="headerlink" title="3.5. 解析&lt;plugins&gt;节点"></a>3.5. 解析<code>&lt;plugins&gt;</code>节点</h2><p>插件是<code>Mybatis</code>提供的扩展机制之一，用户可以通过添加自定义插件在<code>SQL</code>语句执行过程中的某一点进行拦截。<code>Mybatis</code>中的自定义插件只需要实现<code>Interceptor</code>接口，并通过注解指定想要拦截的方法签名即可。在高级主题模块，将详细介绍插件的使用和原理，这里先来分析<code>Mybatis</code>中如何加载和管理插件。</p>
+<p><code>XMLConfigBuilder.pluginElement()</code>方法负责解析<code>&lt;plugins&gt;</code>节点中定义的插件，并完成实例化和配置操作，具体实现如下所示：</p>
+<pre><code class="java"> private void pluginElement(XNode parent) throws Exception {
+    if (parent != null) {
+      //遍历全部的子节点，即遍历&lt;plugins&gt;
+      for (XNode child : parent.getChildren()) {
+        //获取&lt;plugin&gt;节点的interceptor属性的值
+        String interceptor = child.getStringAttribute(&quot;interceptor&quot;);
+        //获取&lt;plugin&gt;下&lt;properties&gt;配置的信息，并形成Properties对象
+        Properties properties = child.getChildrenAsProperties();
+        //通过别名获取对应的Clazz，然后通过反射实例化Interceptor对象
+        Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor().newInstance();
+        //为当前interceptor设置属性值
+        interceptorInstance.setProperties(properties);
+        //记录Interceptor对象
+        configuration.addInterceptor(interceptorInstance);
+      }
+    }
+  }
+</code></pre>
+<h2 id="3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点"><a href="#3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点" class="headerlink" title="3.6. 解析&lt;objectFactory&gt;、&lt;objectWrapperFactory&gt;、&lt;reflectorFactory&gt;节点"></a>3.6. 解析<code>&lt;objectFactory&gt;</code>、<code>&lt;objectWrapperFactory&gt;</code>、<code>&lt;reflectorFactory&gt;</code>节点</h2><p>我们可以通过自定义添加ObjectFactory、ObjectWarpperFactroy、ReflectorFactory的实现类来扩展<code>Mybatis</code>。</p>
+<p><code>XMLConfigBuilder.objectFactoryElement()</code>方法负责解析并实例化<code>&lt;objectFactory&gt;</code>节点指定的<code>ObjectFactory</code>的实现类，之后将自定义的<code>ObjectFactory</code>对象记录在<code>Configuration.objectFactory</code>字段中，具体实现如下所示：</p>
+<pre><code class="java">
+  private void objectFactoryElement(XNode context) throws Exception {
+    if (context != null) {
+      //获取&lt;objectFactory&gt;中的type属性
+      String type = context.getStringAttribute(&quot;type&quot;);
+      //获取&lt;objectFactory&gt;节点下的配置信息，并形成Properties对象
+      Properties properties = context.getChildrenAsProperties();
+      //通过别名获取对应的clazz，然后实例化ObjectFactory
+      ObjectFactory factory = (ObjectFactory) resolveClass(type).getDeclaredConstructor().newInstance();
+      //为实例化的ObjectFactory对象设置属性
+      factory.setProperties(properties);
+      //记录ObjectFactory对象
+      configuration.setObjectFactory(factory);
+    }
+  }</code></pre>
+<p>XMLConfigBuilder对<code>&lt;objectWrapperFactory&gt;</code>和<code>&lt;reflectorFactory&gt;</code>节点的解析，和上述过程类似。</p>
+<h2 id="3-7-将settings值设置到Configuration中"><a href="#3-7-将settings值设置到Configuration中" class="headerlink" title="3.7. 将settings值设置到Configuration中"></a>3.7. 将<code>settings</code>值设置到<code>Configuration</code>中</h2><p><code>XMLConfigBuilder.settingsElement()</code>这个就是最简单的赋值操作，如下所示：</p>
+<pre><code class="java">  private void settingsElement(Properties props) {
+    configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty(&quot;autoMappingBehavior&quot;, &quot;PARTIAL&quot;)));
+    configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty(&quot;autoMappingUnknownColumnBehavior&quot;, &quot;NONE&quot;)));
+    configuration.setCacheEnabled(booleanValueOf(props.getProperty(&quot;cacheEnabled&quot;), true));
+    configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty(&quot;proxyFactory&quot;)));
+    configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty(&quot;lazyLoadingEnabled&quot;), false));
+    configuration.setAggressiveLazyLoading(booleanValueOf(props.getProperty(&quot;aggressiveLazyLoading&quot;), false));
+    configuration.setMultipleResultSetsEnabled(booleanValueOf(props.getProperty(&quot;multipleResultSetsEnabled&quot;), true));
+    configuration.setUseColumnLabel(booleanValueOf(props.getProperty(&quot;useColumnLabel&quot;), true));
+    configuration.setUseGeneratedKeys(booleanValueOf(props.getProperty(&quot;useGeneratedKeys&quot;), false));
+    configuration.setDefaultExecutorType(ExecutorType.valueOf(props.getProperty(&quot;defaultExecutorType&quot;, &quot;SIMPLE&quot;)));
+    configuration.setDefaultStatementTimeout(integerValueOf(props.getProperty(&quot;defaultStatementTimeout&quot;), null));
+    configuration.setDefaultFetchSize(integerValueOf(props.getProperty(&quot;defaultFetchSize&quot;), null));
+    configuration.setDefaultResultSetType(resolveResultSetType(props.getProperty(&quot;defaultResultSetType&quot;)));
+    configuration.setMapUnderscoreToCamelCase(booleanValueOf(props.getProperty(&quot;mapUnderscoreToCamelCase&quot;), false));
+    configuration.setSafeRowBoundsEnabled(booleanValueOf(props.getProperty(&quot;safeRowBoundsEnabled&quot;), false));
+    configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty(&quot;localCacheScope&quot;, &quot;SESSION&quot;)));
+    configuration.setJdbcTypeForNull(JdbcType.valueOf(props.getProperty(&quot;jdbcTypeForNull&quot;, &quot;OTHER&quot;)));
+    configuration.setLazyLoadTriggerMethods(stringSetValueOf(props.getProperty(&quot;lazyLoadTriggerMethods&quot;), &quot;equals,clone,hashCode,toString&quot;));
+    configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty(&quot;safeResultHandlerEnabled&quot;), true));
+    configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty(&quot;defaultScriptingLanguage&quot;)));
+    configuration.setDefaultEnumTypeHandler(resolveClass(props.getProperty(&quot;defaultEnumTypeHandler&quot;)));
+    configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty(&quot;callSettersOnNulls&quot;), false));
+    configuration.setUseActualParamName(booleanValueOf(props.getProperty(&quot;useActualParamName&quot;), true));
+    configuration.setReturnInstanceForEmptyRow(booleanValueOf(props.getProperty(&quot;returnInstanceForEmptyRow&quot;), false));
+    configuration.setLogPrefix(props.getProperty(&quot;logPrefix&quot;));
+    configuration.setConfigurationFactory(resolveClass(props.getProperty(&quot;configurationFactory&quot;)));
+  }</code></pre>
+<h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2>
             <hr>
           </div>
           <br>

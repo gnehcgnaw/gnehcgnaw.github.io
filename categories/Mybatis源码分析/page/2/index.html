@@ -15,7 +15,7 @@
   <meta name="description" content="">
   <meta name="author" content="gnehcgnaw">
   <meta name="keywords" content="">
-  <title>MartinAdam&#39;s blog</title>
+  <title>分类 - Mybatis源码分析 ~ MartinAdam&#39;s blog</title>
 
   <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
@@ -36,7 +36,7 @@
 
 
 <body>
-  <header style="height: 100vh;">
+  <header style="height: 80vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -110,10 +110,6 @@
           </div>
 
           
-            <div class="scroll-down-bar">
-              <i class="fas fa-angle-down scroll-down-arrow"></i>
-            </div>
-          
         </div>
       </div>
     </div>
@@ -129,144 +125,20 @@
               <div class="col-12 col-md-10 m-auto">
                 
 
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html" target="_self">
-          <img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191125223756-R177Lc.png" srcset="undefined" alt="解析器模块" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html">
-        <p class="h4 index-header">解析器模块</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">解析器模块1. 简介​    解析器模块，对应的包是parsing，如下图所示：
-
-
-解析器模块，主要提供了两个功能：
-
-对XPath进行封装，为Mybatis初始化时解析mybatis-config.xml配置文件以及mapper映射配置文件提供支持。
-为处理动态SQL语句中的占位符提供支持。
-
-2. XML解析方式在mybatis中涉及到多个XML配置文件，因此我们首先要介绍XML解析的相关内容。XML解析的常见的方式有三种：
-
-DOM（document object model）解析方式
-SAX（simple api for xml）解析方式
-Java6版本开始，JDK致辞的StAX（streaming api for xml）解析方式。
-
-DOM是基于树形结构的XML解析方式，它将整个XML文档读入内存并构建成一个DOM树,基于这棵树形结构对各个节点（node）进行操作。XML文档中的每一个成分都是一个节点：整个文档是一个文档节点，每个XML标签对应一个元素节点，包含在XML标签中的文本是文本节点，每一个XML属性是一个属性节点，注释属于注释节点。
-&lt;?xml versi</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-25&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mac%E6%8A%80%E5%B7%A7/iterm2%E4%BF%9D%E5%AD%98%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95.html" target="_self">
-          <img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191115204208-mTkAoN.png" srcset="undefined" alt="iterm2保存密码登录" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mac%E6%8A%80%E5%B7%A7/iterm2%E4%BF%9D%E5%AD%98%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95.html">
-        <p class="h4 index-header">iterm2保存密码登录</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">iterm2保存密码登录1. 编写item2login.sh脚本文件#!/usr/bin/expect  
-
-set timeout 30  
-spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]  
-expect {  
-       &quot;(yes/no)?&quot;  
-       {send &quot;yes\n&quot;;exp_continue}  
-       &quot;password:&quot;  
-       {send &quot;[lindex $argv 3]\n&quot;}  
-}  
-interact 
-
-
-lindex $argv 0 : port
-
-lindex $argv 1：username
-
-lindex $argv 2：IP
-
-lindex $argv 3：password
-
-
-2. 修改item2login.sh权限将item2login.sh移动到/usr/local/bin目录下，然后使用chmod 777 item2login.sh修改脚本</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-15&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-
-
-  <nav aria-label="index posts navigation">
-    <span class="pagination pg-blue justify-content-center mt-5" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="fas fa-angle-double-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
-    </span>
-  </nav>
+<div class="list-group">
+  <p class="h4">共计 1 篇文章</p>
+  <hr>
   
-  <script>
-    for (ele of document.getElementById("pagination").getElementsByClassName("page-number")) {
-      ele.href += '#board';
-    }
-  </script>
-
-
-
+    
+      
+      <p class="h5">2019</p>
+    
+    <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html" class="list-group-item list-group-item-action">
+      <span class="archive-post-title">解析器模块</span>
+      <span style="float: right;">11-25</span>
+    </a>
+  
+</div>
               </div>
             </div>
           </div>
@@ -386,7 +258,7 @@ lindex $argv 3：password
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Man Always Remember Love Because Of Romance Only&nbsp;",
+        "分类 - Mybatis源码分析&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

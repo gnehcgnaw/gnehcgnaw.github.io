@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.6k 字
+                    4.5k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      15 分钟
+                      19 分钟
                   </span>&nbsp;
                 
 
@@ -469,7 +469,7 @@
     configuration.setConfigurationFactory(resolveClass(props.getProperty(&quot;configurationFactory&quot;)));
   }</code></pre>
 <h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><p>在实际生产中，同一项目可能分为开发、测试和生产多个不同的环境，每个环境的配置可能不尽相同。Mybatis可以配置多个<code>&lt;environment&gt;</code>节点，每个<code>&lt;environment&gt;</code>节点对应一种环境的配置。但是需要注意的是，尽管可以配置多环境，每个SqlSessionFactory实例只能选择其一。</p>
-<p>XMLConfigBuilder.environmentElement()方法负责解析<environment>的相关配置，它会根据XMLConfigBuilder.environment字段值确定要使用的<environment>配置，之后创建对应的TransactionFactory和DataSource对象，并封装近Environment对象中。environmentElement()方法的具体实现如下：</p>
+<p><code>XMLConfigBuilder.environmentElement()</code>方法负责解析<code>&lt;environment&gt;</code>的相关配置，它会根据<code>XMLConfigBuilder.environmen</code>t字段值确定要使用的<code>&lt;environment&gt;</code>配置，之后创建对应的TransactionFactory和DataSource对象，并封装进<code>Environment</code>对象中。<code>environmentElement()</code>方法的具体实现如下：</p>
 <pre><code class="java"> private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       //未指定XMLConfigBuilder#environment字段的值，那么使用default属性指定的&lt;environment&gt;&lt;/environment&gt;
@@ -496,7 +496,74 @@
     }
   }
 </code></pre>
-<h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2>
+<h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><p>Mybatis不能像Hibernate那样使用<a href="https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#database-dialect" target="_blank" rel="noopener">hibernate.dialect</a>进行设置，然后直接帮助开发人员屏蔽多种数据库产品在<code>SQL</code>语言支持方言的差异。但是可以在<code>mybatis-config.xml</code>配置文件中，通过<code>&lt;databaseIdProvider&gt;</code>定义所有支持的数据库产品的<code>databaseId</code>，然后在映射文件中定义<code>SQL</code>语句节点中，通过<code>databaseId</code>指定该<code>SQL</code>语句应用的数据库产品，这样也可以实现类似的功能。</p>
+<p>在<code>Mybatis</code>初始化时，会根据前面确定的<code>DataSource</code>确定当前使用的数据库产品，然后在解析映射配置文件时，加载不带<code>databaseId</code>属性和带有匹配当前数据库<code>databaseId</code>属性的所有<code>SQL</code>语句。如果同时找到了带<code>databaseId</code>和不带<code>databaseId</code>的相同语句，则后者会被舍弃，使用前者。</p>
+<p><code>XMLConfigBuilder.databaseIdProviderElement()</code>方法负责解析<code>&lt;databaseIdProvider&gt;</code>节点，并创建指定的DatabaseIdProvider对象。<code>DatabaseIdProvider</code>会返回一个<code>databaseId</code>值，<code>Mybatis</code>会根据<code>databaseId</code>选择合适的<code>SQL</code>去执行。</p>
+<pre><code class="java">private void databaseIdProviderElement(XNode context) throws Exception {
+    DatabaseIdProvider databaseIdProvider = null;
+    if (context != null) {
+      String type = context.getStringAttribute(&quot;type&quot;);
+      // awful patch to keep backward compatibility
+      //为了保证兼容性，修改type取值 &lt;databaseIdProvider type=&quot;DB_VENDOR&quot;&gt;
+      if (&quot;VENDOR&quot;.equals(type)) {
+        type = &quot;DB_VENDOR&quot;;
+      }
+      //解析相关配置信息
+      Properties properties = context.getChildrenAsProperties();
+      //创建DatabaseIdProvider对象
+      databaseIdProvider = (DatabaseIdProvider) resolveClass(type).getDeclaredConstructor().newInstance();
+      //配置DatabaseIdProvider，完成初始化
+      databaseIdProvider.setProperties(properties);
+    }
+    Environment environment = configuration.getEnvironment();
+    if (environment != null &amp;&amp; databaseIdProvider != null) {
+      //通过前面确定的DataSource获取databaseId,并记录到Configuration.databaseId字段中
+      String databaseId = databaseIdProvider.getDatabaseId(environment.getDataSource());
+      configuration.setDatabaseId(databaseId);
+    }
+  }</code></pre>
+<h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2><p>在Mybatis初始化时，除了加载mybatis-config.xml配置文件，还会加载全部的映射配置文件，mybatis-config.xml配置文件中的<mappers>节点会告诉我Mybatis去哪些位置查找映射配置文件以及使用了配置注解表示的接口。</p>
+<p>XMLConfigBuilder.mapperElement()方法负责解析<mappers>节点，它会创建XMLMapperBuilder对象加载映射文件，如果映射配置文件存在相应的Mapper接口，也会加载相应的Mapper接口，解析其中的注解并完成向MapperRegistry的注册。</p>
+<pre><code class="java">  private void mapperElement(XNode parent) throws Exception {
+    if (parent != null) {
+      //处理&lt;mappers&gt;的子节点
+      for (XNode child : parent.getChildren()) {
+        //处理&lt;package&gt;节点
+        if (&quot;package&quot;.equals(child.getName())) {
+          String mapperPackage = child.getStringAttribute(&quot;name&quot;);
+          //扫描指定的包，并向MapperRegistry注册Mapper接口
+          configuration.addMappers(mapperPackage);
+        } else {
+          //获取&lt;mapper&gt;节点的resource、url、class属性，这三个属性是互斥的
+          String resource = child.getStringAttribute(&quot;resource&quot;);
+          String url = child.getStringAttribute(&quot;url&quot;);
+          String mapperClass = child.getStringAttribute(&quot;class&quot;);
+          //如果&lt;mapper&gt;节点指定了resource或者url属性，则创建XMLMapperBuilder对象，并通过该对象解析resource或url属性指定的Mapper配置文件
+          if (resource != null &amp;&amp; url == null &amp;&amp; mapperClass == null) {
+            ErrorContext.instance().resource(resource);
+            InputStream inputStream = Resources.getResourceAsStream(resource);
+            //创建XMLMapperBuilder对象，解析映射配置文件
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+            mapperParser.parse();
+          } else if (resource == null &amp;&amp; url != null &amp;&amp; mapperClass == null) {
+            ErrorContext.instance().resource(url);
+            InputStream inputStream = Resources.getUrlAsStream(url);
+            //创建XMLMapperBuilder对象，解析映射配置文件
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
+            mapperParser.parse();
+          } else if (resource == null &amp;&amp; url == null &amp;&amp; mapperClass != null) {
+            Class&lt;?&gt; mapperInterface = Resources.classForName(mapperClass);
+            //如果&lt;mapper&gt;节点指定了class属性，则向MapperRegistry注册该Mapper接口
+            configuration.addMapper(mapperInterface);
+          } else {
+            throw new BuilderException(&quot;A mapper element may only specify a url, resource or class, but not more than one.&quot;);
+          }
+        }
+      }
+    }
+  }</code></pre>
+<p><code>Mybatis</code>初始化过程中对<code>mybatis-config.xml</code>配置文件的解析过程到这里也就结束了，Mybatis初始化（二）会接续介绍，介绍<code>Mybatis</code>对映射文件的解析过程。</p>
+
             <hr>
           </div>
           <br>

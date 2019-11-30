@@ -161,7 +161,7 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="DataSource"><a href="#DataSource" class="headerlink" title="DataSource"></a>DataSource</h1><h1 id="1-工厂方法模式"><a href="#1-工厂方法模式" class="headerlink" title="1. 工厂方法模式"></a>1. 工厂方法模式</h1><h1 id="2-DataSourceFactory"><a href="#2-DataSourceFactory" class="headerlink" title="2. DataSourceFactory"></a>2. DataSourceFactory</h1><p>在数据源模块中，DataSourceFactory接口扮演工厂接口的角色。<code>UnpooledDataSourceFactory</code>和<code>PooledDataSourceFactory</code>则扮演着具体工厂类的角色。</p>
+            <h1 id="DataSource"><a href="#DataSource" class="headerlink" title="DataSource"></a>DataSource</h1><h1 id="1-工厂方法模式"><a href="#1-工厂方法模式" class="headerlink" title="1. 工厂方法模式"></a>1. 工厂方法模式</h1><h1 id="2-DataSourceFactory"><a href="#2-DataSourceFactory" class="headerlink" title="2. DataSourceFactory"></a>2. DataSourceFactory</h1><p>在数据源模块中，<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html#3-8-%E8%A7%A3%E6%9E%90-lt-environments-gt-%E8%8A%82%E7%82%B9" target="_blank" rel="noopener">DataSourceFactory</a>接口扮演工厂接口的角色。<code>UnpooledDataSourceFactory</code>和<code>PooledDataSourceFactory</code>则扮演着具体工厂类的角色。</p>
 <h2 id="2-1-DataSourceFactroy"><a href="#2-1-DataSourceFactroy" class="headerlink" title="2.1. DataSourceFactroy"></a>2.1. DataSourceFactroy</h2><p>我们从<code>DataSourceFactory</code>接口开始分析，其定义如下：</p>
 <pre><code class="java">  /**
    * 设置DataSource相关属性，

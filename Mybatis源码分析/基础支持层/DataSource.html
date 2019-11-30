@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    1 字
+                    502 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      2 分钟
                   </span>&nbsp;
                 
 
@@ -161,7 +161,77 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="DataSource"><a href="#DataSource" class="headerlink" title="DataSource"></a>DataSource</h1>
+            <h1 id="DataSource"><a href="#DataSource" class="headerlink" title="DataSource"></a>DataSource</h1><h1 id="1-工厂方法模式"><a href="#1-工厂方法模式" class="headerlink" title="1. 工厂方法模式"></a>1. 工厂方法模式</h1><h1 id="2-DataSourceFactory"><a href="#2-DataSourceFactory" class="headerlink" title="2. DataSourceFactory"></a>2. DataSourceFactory</h1><p>在数据源模块中，DataSourceFactory接口扮演工厂接口的角色。<code>UnpooledDataSourceFactory</code>和<code>PooledDataSourceFactory</code>则扮演着具体工厂类的角色。</p>
+<h2 id="2-1-DataSourceFactroy"><a href="#2-1-DataSourceFactroy" class="headerlink" title="2.1. DataSourceFactroy"></a>2.1. DataSourceFactroy</h2><p>我们从<code>DataSourceFactory</code>接口开始分析，其定义如下：</p>
+<pre><code class="java">  /**
+   * 设置DataSource相关属性，
+   * 一切紧跟在初始化完成之后，证明：
+   *  {@link org.apache.ibatis.builder.xml.XMLConfigBuilder#dataSourceElement(XNode)}
+   * @param props
+   */
+  void setProperties(Properties props);
+
+  /**
+   * 获取DataSource对象
+   * @return
+   */
+  DataSource getDataSource();</code></pre>
+<h2 id="2-2-UnpooledDataSourceFactory"><a href="#2-2-UnpooledDataSourceFactory" class="headerlink" title="2.2. UnpooledDataSourceFactory"></a>2.2. UnpooledDataSourceFactory</h2><p>在<code>UnpooledDataSourceFactory</code>的构造方法中会直接创建<code>UnpooledDataSource</code>对象，并初始化<code>UnpooledDatasourceFactory.dataSource</code>字段。</p>
+<pre><code class="java">  protected DataSource dataSource;
+
+  /**
+   * 直接创建一个{@link UnpooledDataSource}
+   */
+  public UnpooledDataSourceFactory() {
+    this.dataSource = new UnpooledDataSource();
+  }</code></pre>
+<p><code>UnpooledDataSourceFactory.setProperties()</code>方法会完成对<code>UnpooledDataSourceFactory</code>对象的配置，代码如下：</p>
+<pre><code class="java">@Override
+  public void setProperties(Properties properties) {
+    Properties driverProperties = new Properties();
+    //创建DataSource对应的MetaObject
+    MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    //遍历properties集合，该集合中配置了数据源需要的信息
+    for (Object key : properties.keySet()) {
+      String propertyName = (String) key;
+      //以&quot;diver.&quot;开头的配置项是对DataSource的配置，记录到diverProperties中保存
+      if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
+        String value = properties.getProperty(propertyName);
+        driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
+      }
+      //是否有该属性对应的setter方法
+      else if (metaDataSource.hasSetter(propertyName)) {
+        String value = (String) properties.get(propertyName);
+        //根据属性类型将value的类型进行类型转换，主要是Integer、Long、Boolean三种类型转换
+        Object convertedValue = convertValue(metaDataSource, propertyName, value);
+        //设置DataSource的相关属性
+        metaDataSource.setValue(propertyName, convertedValue);
+      } else {
+        throw new DataSourceException(&quot;Unknown DataSource property: &quot; + propertyName);
+      }
+    }
+    //设置DataSource的driverProperties属性
+    if (driverProperties.size() &gt; 0) {
+      metaDataSource.setValue(&quot;driverProperties&quot;, driverProperties);
+    }
+  }</code></pre>
+<h2 id="2-3-PooledDataSourceFactory"><a href="#2-3-PooledDataSourceFactory" class="headerlink" title="2.3. PooledDataSourceFactory"></a>2.3. PooledDataSourceFactory</h2><p><code>PooledDataSourceFactory</code>继承了<code>UnpooledDataSourceFactory</code>，但是并没有覆盖<code>setProperties()</code>和<code>getDataSource()</code>方法。两者唯一不同的是<code>PoolDataSoueceFactory</code>的构造函数会将其<code>dataSource</code>字段初始化为<code>PooledDataSource</code>对象。</p>
+<pre><code class="java">/**
+ * 继承了{@link UnpooledDataSourceFactory},但是并没有覆盖{@link UnpooledDataSourceFactory#setProperties(Properties)}和{@link UnpooledDataSourceFactory#getDataSource()}方法，
+ * 唯一不同的是初始化的dataSource是不同的：
+ *      {@link UnpooledDataSourceFactory} 初始化了{@link org.apache.ibatis.datasource.unpooled.UnpooledDataSource}
+ *      {@link PooledDataSourceFactory} 初始化了{@link PooledDataSource}
+ * @author Clinton Begin
+ */
+public class PooledDataSourceFactory extends UnpooledDataSourceFactory {
+
+  public PooledDataSourceFactory() {
+    this.dataSource = new PooledDataSource();
+  }
+
+}</code></pre>
+<h2 id="2-4-JndiDataSourceFactory"><a href="#2-4-JndiDataSourceFactory" class="headerlink" title="2.4. JndiDataSourceFactory"></a>2.4. JndiDataSourceFactory</h2><p>JndiDataSourceFactory是依赖<a href="https://baike.baidu.com/item/JNDI/3792442?fr=aladdin" target="_blank" rel="noopener">JNDI</a>服务从容器中获取用户配置的DataSource，其逻辑并不复杂，可以参看<a href="https://tomcat.apache.org/tomcat-8.5-doc/jndi-resources-howto.html" target="_blank" rel="noopener">Tomcat的JNDI</a>相关文档。</p>
+<h1 id="3-UnpooledDataSource"><a href="#3-UnpooledDataSource" class="headerlink" title="3. UnpooledDataSource"></a>3. UnpooledDataSource</h1><h1 id="4-PooledDataSource"><a href="#4-PooledDataSource" class="headerlink" title="4. PooledDataSource"></a>4. PooledDataSource</h1>
             <hr>
           </div>
           <br>

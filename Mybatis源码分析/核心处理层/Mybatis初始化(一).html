@@ -469,7 +469,7 @@
     configuration.setConfigurationFactory(resolveClass(props.getProperty(&quot;configurationFactory&quot;)));
   }</code></pre>
 <h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><p>在实际生产中，同一项目可能分为开发、测试和生产多个不同的环境，每个环境的配置可能不尽相同。Mybatis可以配置多个<code>&lt;environment&gt;</code>节点，每个<code>&lt;environment&gt;</code>节点对应一种环境的配置。但是需要注意的是，尽管可以配置多环境，每个SqlSessionFactory实例只能选择其一。</p>
-<p><code>XMLConfigBuilder.environmentElement()</code>方法负责解析<code>&lt;environment&gt;</code>的相关配置，它会根据<code>XMLConfigBuilder.environmen</code>t字段值确定要使用的<code>&lt;environment&gt;</code>配置，之后创建对应的TransactionFactory和DataSource对象，并封装进<code>Environment</code>对象中。<code>environmentElement()</code>方法的具体实现如下：</p>
+<p><code>XMLConfigBuilder.environmentElement()</code>方法负责解析<code>&lt;environment&gt;</code>的相关配置，它会根据<code>XMLConfigBuilder.environmen</code>t字段值确定要使用的<code>&lt;environment&gt;</code>配置，之后创建对应的TransactionFactory和DataSourceFactroy对象，通过<code>DataSourceFactory.getDataSource()</code>获取DataSource对象，并封装进<code>Environment</code>对象中。<code>environmentElement()</code>方法的具体实现如下：</p>
 <pre><code class="java"> private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       //未指定XMLConfigBuilder#environment字段的值，那么使用default属性指定的&lt;environment&gt;&lt;/environment&gt;

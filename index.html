@@ -221,7 +221,7 @@
     
       <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/Transaction.html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129215610-z8yGCb.jpeg" srcset="undefined" alt="Transaction" class="img-fluid rounded z-depth-3 index-thumbnails">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201160809-pfdyf4.png" srcset="undefined" alt="Transaction" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
       </div>
     
@@ -233,7 +233,28 @@
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">Transaction</div>
+          <div class="index-text mb-1">Transaction1. Transcation在实践开发中，控制数据库事务是一件非常重要的工作，Mybatis使用Transaction接口对数据库事务进行了抽象，Transcation接口的定义如下：
+public interface Transaction {
+
+  /**
+   * 获取对应的数据库连接对象
+   * Retrieve inner database connection.
+   * @return DataBase connection
+   * @throws SQLException
+   */
+  Connection getConnection() throws SQLException;
+
+  /**
+   * 提交事务
+   * Commit inner database connection.
+   * @throws SQLException
+   */
+  void commit() throws SQLException;
+
+  /**
+   * 回滚事务
+   * Rollback inner database connection.
+ </div>
         </div>
       </a>
 

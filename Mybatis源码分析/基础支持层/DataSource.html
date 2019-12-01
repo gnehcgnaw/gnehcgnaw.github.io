@@ -467,8 +467,8 @@ public class PooledDataSourceFactoryTest {
   }
 }
 </code></pre>
-<p>有上述代码可以发现程序执行的第一步是：new PooledDataSourceFactory()，而在PooledDataSourceFactory构造中new 了一个PooledDataSource，所以我们需要先解析PooledDataSource。</p>
-<p>PooledDataSource中的核心字段如下所示：</p>
+<p>有上述代码可以发现程序执行的第一步是：<code>new PooledDataSourceFactory()</code>，而在<code>PooledDataSourceFactory</code>构造中<code>new</code> 了一个<code>PooledDataSource</code>，所以我们需要先解析<code>PooledDataSource</code>。</p>
+<p><code>PooledDataSource</code>中的核心字段如下所示：</p>
 <pre><code class="java">/**
    * 通过PoolState管理连接池的转台并记录统计信息
    */
@@ -516,9 +516,9 @@ public class PooledDataSourceFactoryTest {
    */
   private int expectedConnectionTypeCode;
 </code></pre>
-<p>PooledDataSource中还提供了上述字段的getter和setter方法，代码比较简单。其中有个与众不同的属性赋值<code>private final PoolState state = new PoolState(this);</code>，这使得我先去研究PoolState了，一会回来。</p>
+<p><code>PooledDataSource</code>中还提供了上述字段的<code>getter</code>和<code>setter</code>方法，代码比较简单。其中有个与众不同的属性赋值<code>private final PoolState state = new PoolState(this);</code>，这使得我先去研究<code>PoolState</code>了，一会回来。</p>
 <hr>
-<p>PoolState是用于管理PooledConnection对象状态的组件。为什么这么说呢？看看它定义的字段：</p>
+<p><code>PoolState</code>是用于管理<code>PooledConnection</code>对象状态的组件。为什么这么说呢？看看它定义的字段：</p>
 <pre><code class="java"> protected PooledDataSource dataSource;
   /**
    * 空闲的PooledConnection集合
@@ -563,9 +563,9 @@ public class PooledDataSourceFactoryTest {
    */
   protected long badConnectionCount = 0;
 </code></pre>
-<p>由以上字段可以看出，PoolState是通过两个Arraylist<PooledConnection>分别管理空闲状态的连接和活跃状态的连接的，当然了PoolState中还定义了一系列用于统计的字段。</p>
+<p>由以上字段可以看出，<code>PoolState</code>是通过两个<code>Arraylist&lt;PooledConnection&gt;</code>分别管理空闲状态的连接和活跃状态的连接的，当然了<code>PoolState</code>中还定义了一系列用于统计的字段。</p>
 <hr>
-<p>简单介绍完以上，我们再回到PooledDataSource，分析其构造方法，如下所示：</p>
+<p>简单介绍完以上，我们再回到<code>PooledDataSource</code>，分析其构造方法，如下所示：</p>
 <pre><code class="java">public PooledDataSource() {
     dataSource = new UnpooledDataSource();
   }
@@ -594,8 +594,8 @@ public class PooledDataSourceFactoryTest {
     expectedConnectionTypeCode = assembleConnectionTypeCode(dataSource.getUrl(), dataSource.getUsername(), dataSource.getPassword());
   }
 </code></pre>
-<p>有PooledDataSource的构造方法可知，PooledDataSource的创建需要一个UnPooledDataSource对象。</p>
-<p>拿到DataSource对象之后，就要通过DataSource.getConnection()去获取数据库连接对象，在PooledDataSource中的getConnection()代码如下所示：</p>
+<p>有<code>PooledDataSource</code>的构造方法可知，<code>PooledDataSource</code>的创建需要一个<code>UnPooledDataSource</code>对象。</p>
+<p>拿到<code>DataSource</code>对象之后，就要通过<code>DataSource.getConnection()</code>去获取数据库连接对象，在<code>PooledDataSource</code>中的<code>getConnection()</code>代码如下所示：</p>
 <pre><code class="java">  /**
    * 获取连接：
    *    首先通过{@link PooledDataSource#popConnection(String, String)}获取{@link PooledConnection}，
@@ -617,12 +617,12 @@ public class PooledDataSourceFactoryTest {
   public Connection getConnection(String username, String password) throws SQLException {
     return popConnection(username, password).getProxyConnection();
   }</code></pre>
-<p>由以上代码可以看出，不管调用的是哪个PooledDataSource.getConnection()方法的重载，最终都调用到了两个方法：</p>
+<p>由以上代码可以看出，不管调用的是哪个<code>PooledDataSource.getConnection()</code>方法的重载，最终都调用到了两个方法：</p>
 <ol>
-<li>通过PooledDataSource.popConnection()获取一个PooledConnection，因为PooledConnection只实现了InvocationHandler接口，并未实现java.sql.Connection，故而这个PooledConnection是不能操作数据库的，需要通过它获取一个java.sql.Connection的代理对象，也就有了第二部的操作；</li>
-<li>使用PooledConnection.getProxyConnection()，获取一个JDK动态代理生成的实现了java.sql.Connection的代理对象。（这一步很简单就是一个get值的过程，不去研究。）</li>
+<li>通过<code>PooledDataSource.popConnection()</code>获取一个<code>PooledConnection</code>，因为<code>PooledConnection</code>只实现了<code>InvocationHandler</code>接口，并未实现<code>java.sql.Connection</code>，故而这个<code>PooledConnection</code>是不能操作数据库的，需要通过它获取一个<code>java.sql.Connection</code>的代理对象，也就有了第二部的操作；</li>
+<li>使用<code>PooledConnection.getProxyConnection()</code>，获取一个<code>JDK</code>动态代理生成的实现了<code>java.sql.Connection</code>的代理对象。（这一步很简单就是一个<code>get</code>值的过程，不去研究。）</li>
 </ol>
-<p>所以我们接下来先分析PooledDataSource.popConnection()方法，此方法具体代码如下所示：</p>
+<p>所以我们接下来先分析<code>PooledDataSource.popConnection()</code>方法，此方法具体代码如下所示：</p>
 <pre><code class="java">/**
    * pop连接
    * @param username
@@ -791,7 +791,7 @@ public class PooledDataSourceFactoryTest {
 </code></pre>
 <p>以上代码的逻辑流程如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201140942-l8rFwF.png" srcset="undefined" alt=""></p>
-<p>有以上流程，我们发现在在活跃数没有大于最大限定的时候创建了一个新的PooledConnection，这里调用了PooledConnection的构造方法，代码如下所示：</p>
+<p>有以上流程，我们发现在在活跃数没有大于最大限定的时候创建了一个新的<code>PooledConnection</code>，这里调用了<code>PooledConnection</code>的构造方法，代码如下所示：</p>
 <pre><code class="java"> public PooledConnection(Connection connection, PooledDataSource dataSource) {
     this.hashCode = connection.hashCode();
     this.realConnection = connection;

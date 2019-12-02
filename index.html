@@ -147,7 +147,22 @@
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">缓存模块</div>
+          <div class="index-text mb-1">缓存模块Mybatis作为一个强大的持久层框架，缓存是其必不可少的功能之一。Mybatis中的缓存是两层结构的，分为一级缓存、二级缓存，但在本质上是相同的，它们使用的都是Cache接口的实现。
+1. 装饰者模式2. Cache接口及其实现Mybatis中缓存模块相应的代码位于cache包下，其中Cache接口是缓存模块中最核心的接口，它定义了所以缓存的基本行为，Cache接口的定义如下：
+public interface Cache {
+
+  /**
+   * 该缓存对象的ID
+   * @return The identifier of this cache
+   */
+  String getId();
+
+  /**
+   * 向缓存中添加数据，一般情况下key是{@link CacheKey} ，value是查询结果
+   * @param key Can be any object but usually it is a {@link CacheKey}
+   * @param value The result of a select.
+   */
+  void putObje</div>
         </div>
       </a>
 
@@ -443,7 +458,8 @@ public interface Transaction {
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">Mybatis初始化(二)</div>
+          <div class="index-text mb-1">Mybatis初始化(二)1. XMLMapperBuilder通过对XMLConfigBuilder.mapperElement()方法的介绍我们知道，XMLMapperBuiler负责解析映射配置文件，它继承了BaseBuilder抽象类，也是具体建造者的角色。
+</div>
         </div>
       </a>
 

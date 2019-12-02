@@ -216,8 +216,8 @@
 <p>在<code>BaseBuilder</code>中提供了相应的<code>resolveJdbcType()</code>、<code>resolveResultSetType()</code>、<code>resolveParameterMode()</code>方法，将<code>String</code>转换成对应的枚举类型，实现比较简单。</p>
 <h1 id="3-XMLConfigBuilder"><a href="#3-XMLConfigBuilder" class="headerlink" title="3. XMLConfigBuilder"></a>3. XMLConfigBuilder</h1><p><code>XMLConfigBuilder</code>是<code>BaseBuilder</code>的众多子类之一，它扮演的是具体建造者的角色。<code>XMLConfigBuilder</code>主要负责解析<code>mybatis-config.xml</code>配置文件，其核心字段如下：</p>
 <ul>
-<li>XPathParser</li>
-<li>ReflectorFactory</li>
+<li><a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html#4-XPathParser" target="_blank" rel="noopener">XPathParser</a></li>
+<li><a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html#4-XPathParser" target="_blank" rel="noopener">ReflectorFactory</a></li>
 </ul>
 <pre><code class="java">/**
    *   标识是否被解析过mybatis-config.xml
@@ -421,7 +421,7 @@
     }
   }
 </code></pre>
-<h2 id="3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点"><a href="#3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点" class="headerlink" title="3.6. 解析&lt;objectFactory&gt;、&lt;objectWrapperFactory&gt;、&lt;reflectorFactory&gt;节点"></a>3.6. 解析<code>&lt;objectFactory&gt;</code>、<code>&lt;objectWrapperFactory&gt;</code>、<code>&lt;reflectorFactory&gt;</code>节点</h2><p>我们可以通过自定义添加ObjectFactory、ObjectWarpperFactroy、ReflectorFactory的实现类来扩展<code>Mybatis</code>。</p>
+<h2 id="3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点"><a href="#3-6-解析-lt-objectFactory-gt-、-lt-objectWrapperFactory-gt-、-lt-reflectorFactory-gt-节点" class="headerlink" title="3.6. 解析&lt;objectFactory&gt;、&lt;objectWrapperFactory&gt;、&lt;reflectorFactory&gt;节点"></a>3.6. 解析<code>&lt;objectFactory&gt;</code>、<code>&lt;objectWrapperFactory&gt;</code>、<code>&lt;reflectorFactory&gt;</code>节点</h2><p>我们可以通过自定义添加ObjectFactory、ObjectWarpperFactroy、<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E8%A7%A3%E6%9E%90%E5%99%A8%E6%A8%A1%E5%9D%97.html#4-XPathParser" target="_blank" rel="noopener">ReflectorFactory</a>的实现类来扩展<code>Mybatis</code>。</p>
 <p><code>XMLConfigBuilder.objectFactoryElement()</code>方法负责解析并实例化<code>&lt;objectFactory&gt;</code>节点指定的<code>ObjectFactory</code>的实现类，之后将自定义的<code>ObjectFactory</code>对象记录在<code>Configuration.objectFactory</code>字段中，具体实现如下所示：</p>
 <pre><code class="java">
   private void objectFactoryElement(XNode context) throws Exception {
@@ -469,7 +469,7 @@
     configuration.setConfigurationFactory(resolveClass(props.getProperty(&quot;configurationFactory&quot;)));
   }</code></pre>
 <h2 id="3-8-解析-lt-environments-gt-节点"><a href="#3-8-解析-lt-environments-gt-节点" class="headerlink" title="3.8. 解析&lt;environments&gt;节点"></a>3.8. 解析<code>&lt;environments&gt;</code>节点</h2><p>在实际生产中，同一项目可能分为开发、测试和生产多个不同的环境，每个环境的配置可能不尽相同。Mybatis可以配置多个<code>&lt;environment&gt;</code>节点，每个<code>&lt;environment&gt;</code>节点对应一种环境的配置。但是需要注意的是，尽管可以配置多环境，每个SqlSessionFactory实例只能选择其一。</p>
-<p><code>XMLConfigBuilder.environmentElement()</code>方法负责解析<code>&lt;environment&gt;</code>的相关配置，它会根据<code>XMLConfigBuilder.environmen</code>t字段值确定要使用的<code>&lt;environment&gt;</code>配置，之后创建对应的TransactionFactory和<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/DataSource.html#2-DataSourceFactory" target="_blank" rel="noopener">DataSourceFactroy</a>对象，通过<code>DataSourceFactory.getDataSource()</code>获取DataSource对象，并封装进<code>Environment</code>对象中。<code>environmentElement()</code>方法的具体实现如下：</p>
+<p><code>XMLConfigBuilder.environmentElement()</code>方法负责解析<code>&lt;environment&gt;</code>的相关配置，它会根据<code>XMLConfigBuilder.environmen</code>t字段值确定要使用的<code>&lt;environment&gt;</code>配置，之后创建对应的<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/Transaction.html#2-TranscationFactory" target="_blank" rel="noopener">TransactionFactory</a>和<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/DataSource.html#2-DataSourceFactory" target="_blank" rel="noopener">DataSourceFactroy</a>对象，通过<code>DataSourceFactory.getDataSource()</code>获取<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/Transaction.html#2-TranscationFactory" target="_blank" rel="noopener">DataSource</a>对象，并封装进<code>Environment</code>对象中。<code>environmentElement()</code>方法的具体实现如下：</p>
 <pre><code class="java"> private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       //未指定XMLConfigBuilder#environment字段的值，那么使用default属性指定的&lt;environment&gt;&lt;/environment&gt;
@@ -496,7 +496,7 @@
     }
   }
 </code></pre>
-<h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><p>Mybatis不能像Hibernate那样使用<a href="https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#database-dialect" target="_blank" rel="noopener">hibernate.dialect</a>进行设置，然后直接帮助开发人员屏蔽多种数据库产品在<code>SQL</code>语言支持方言的差异。但是可以在<code>mybatis-config.xml</code>配置文件中，通过<code>&lt;databaseIdProvider&gt;</code>定义所有支持的数据库产品的<code>databaseId</code>，然后在映射文件中定义<code>SQL</code>语句节点中，通过<code>databaseId</code>指定该<code>SQL</code>语句应用的数据库产品，这样也可以实现类似的功能。</p>
+<h2 id="3-9-解析-lt-databaseIdProvider-gt-节点"><a href="#3-9-解析-lt-databaseIdProvider-gt-节点" class="headerlink" title="3.9.  解析&lt;databaseIdProvider&gt;节点"></a>3.9.  解析<code>&lt;databaseIdProvider&gt;</code>节点</h2><p><code>Mybatis</code>不能像<code>Hibernate</code>那样使用<a href="https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#database-dialect" target="_blank" rel="noopener">hibernate.dialect</a>进行设置，然后直接帮助开发人员屏蔽多种数据库产品在<code>SQL</code>语言支持方言的差异。但是可以在<code>mybatis-config.xml</code>配置文件中，通过<code>&lt;databaseIdProvider&gt;</code>定义所有支持的数据库产品的<code>databaseId</code>，然后在映射文件中定义<code>SQL</code>语句节点中，通过<code>databaseId</code>指定该<code>SQL</code>语句应用的数据库产品，这样也可以实现类似的功能。</p>
 <p>在<code>Mybatis</code>初始化时，会根据前面确定的<code>DataSource</code>确定当前使用的数据库产品，然后在解析映射配置文件时，加载不带<code>databaseId</code>属性和带有匹配当前数据库<code>databaseId</code>属性的所有<code>SQL</code>语句。如果同时找到了带<code>databaseId</code>和不带<code>databaseId</code>的相同语句，则后者会被舍弃，使用前者。</p>
 <p><code>XMLConfigBuilder.databaseIdProviderElement()</code>方法负责解析<code>&lt;databaseIdProvider&gt;</code>节点，并创建指定的DatabaseIdProvider对象。<code>DatabaseIdProvider</code>会返回一个<code>databaseId</code>值，<code>Mybatis</code>会根据<code>databaseId</code>选择合适的<code>SQL</code>去执行。</p>
 <pre><code class="java">private void databaseIdProviderElement(XNode context) throws Exception {
@@ -522,8 +522,8 @@
       configuration.setDatabaseId(databaseId);
     }
   }</code></pre>
-<h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2><p>在Mybatis初始化时，除了加载mybatis-config.xml配置文件，还会加载全部的映射配置文件，mybatis-config.xml配置文件中的<mappers>节点会告诉我Mybatis去哪些位置查找映射配置文件以及使用了配置注解表示的接口。</p>
-<p>XMLConfigBuilder.mapperElement()方法负责解析<mappers>节点，它会创建XMLMapperBuilder对象加载映射文件，如果映射配置文件存在相应的Mapper接口，也会加载相应的Mapper接口，解析其中的注解并完成向MapperRegistry的注册。</p>
+<h2 id="3-10-解析-lt-typeHandlers-gt-节点"><a href="#3-10-解析-lt-typeHandlers-gt-节点" class="headerlink" title="3.10. 解析&lt;typeHandlers&gt;节点"></a>3.10. 解析<code>&lt;typeHandlers&gt;</code>节点</h2><h2 id="3-11-解析-lt-mappers-gt-节点"><a href="#3-11-解析-lt-mappers-gt-节点" class="headerlink" title="3.11. 解析&lt;mappers&gt;节点"></a>3.11. 解析<code>&lt;mappers&gt;</code>节点</h2><p>在<code>Mybatis</code>初始化时，除了加载<code>mybatis-config.xml</code>配置文件，还会加载全部的映射配置文件，<code>mybatis-config.xml</code>配置文件中的<code>&lt;mappers&gt;</code>节点会告诉我<code>Mybatis</code>去哪些位置查找映射配置文件以及使用了配置注解表示的接口。</p>
+<p><code>XMLConfigBuilder.mapperElement()</code>方法负责解析<code>&lt;mappers&gt;</code>节点，它会创建<code>XMLMapperBuilder</code>对象加载映射文件，如果映射配置文件存在相应的<code>Mapper</code>接口，也会加载相应的<code>Mapper</code>接口，解析其中的注解并完成向<code>MapperRegistry</code>的注册。</p>
 <pre><code class="java">  private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       //处理&lt;mappers&gt;的子节点

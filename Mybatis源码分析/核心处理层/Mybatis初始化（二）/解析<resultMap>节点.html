@@ -15,7 +15,7 @@
   <meta name="description" content="">
   <meta name="author" content="gnehcgnaw">
   <meta name="keywords" content="">
-  <title>Mybatis初始化(二) ~ MartinAdam&#39;s blog</title>
+  <title>解析&lt;resultMap&gt;节点 ~ MartinAdam&#39;s blog</title>
 
   <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    195 字
+                    1.3k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      5 分钟
                   </span>&nbsp;
                 
 
@@ -161,9 +161,137 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="Mybatis初始化-二"><a href="#Mybatis初始化-二" class="headerlink" title="Mybatis初始化(二)"></a>Mybatis初始化(二)</h1><h1 id="1-XMLMapperBuilder"><a href="#1-XMLMapperBuilder" class="headerlink" title="1. XMLMapperBuilder"></a>1. XMLMapperBuilder</h1><p>通过对XMLConfigBuilder.mapperElement()方法的介绍我们知道，XMLMapperBuiler负责解析映射配置文件，它继承了BaseBuilder抽象类，也是具体建造者的角色。</p>
-<h2 id="1-1-解析-lt-cache-gt-节点"><a href="#1-1-解析-lt-cache-gt-节点" class="headerlink" title="1.1. 解析&lt;cache&gt;节点"></a>1.1. 解析<code>&lt;cache&gt;</code>节点</h2><p>Mybatis拥有非常强大的耳机缓存功能，该功能可以非常方便地进行配置，Mybatis默认情况下是没有开启二级缓存的，如果要为某命名空间开启二级缓存功能，则需要在相应映射配置文件中添加<cache>节点，还可以通过配置文件<cache>节点的相应属性，为二级缓存配置相应的特性（本质上就是添加相应的装饰器）。</p>
-<p>XMLMapperBuiler.cacheElement()方法主要负责解析<cache>节点，具体实现如下：</p>
+            <h1 id="解析-lt-resultMap-gt-节点"><a href="#解析-lt-resultMap-gt-节点" class="headerlink" title="解析&lt;resultMap&gt;节点"></a>解析<code>&lt;resultMap&gt;</code>节点</h1><h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h1><p>select语句查询得到的结果集是一张二维表，水平方向上看是一个个字段，垂直方向上看是一条条数据。而Java是面向对象的程序设计语言，对象是根据类定义创建的，类之间的引用关系是可以认为是嵌套结构的。在JDBC编程中，为了将结果集中的数据映射成对象，我们需要自己写代码从结果集中获取数据，然后封装成对应的对象并设置对象之间的关系，而这些都是大量的重复性的代码。为了减少这些重复的代码，Mybatis使用<resultMap>节点定义了结果集与结果对象（JavaBean对象）之间的映射规则，<resultMap>节点可以满足绝大部分的映射需求，从未减少开发人员的重复性劳动，提高开发效率。</p>
+<p>在开始介绍<resultMap>节点的解析过程之前，先来介绍该过程中使用的数据结构。每个ResultMapping对象记录了结果集中的一列与JavaBean中一个属性之间的映射关系。在后面的分析过程中我们可以看到，<resultMap>节点下除了<discriminator>子节点的其他子节点，都活被解析成对应的ResultMapping对象。ResultMapping对象的核心字段如下所示：</p>
+<pre><code class="java">/**
+   * Configuration对象
+   */
+  private Configuration configuration;
+  /**
+   * 对应节点的property属性，表示的是与该列映射的属性
+   */
+  private String property;
+  /**
+   * 对应节点的column属性，表示的是从数据库中得到的列名或列名的别名
+   */
+  private String column;
+  /**
+   * 对应节点的javaType属性，表示的是一个JavaBean的完全限定名，或一个类型的别名
+   */
+  private Class&lt;?&gt; javaType;
+  /**
+   * 对应节点的jdbcType属性，表示的是进行映射的列的JDBC类型
+   */
+  private JdbcType jdbcType;
+  /**
+   * 对应节点的typeHandler属性， 表示的是类型处理器，它会覆盖默认的类型处理器，
+   */
+  private TypeHandler&lt;?&gt; typeHandler;
+  /**
+   * 对应节点的resultMap属性，该属性通过id引用另一个&lt;resultMap&gt;节点定义，它负责将结果集中的一部分分列映射成其他关联的结果对象。
+   * 这样我们就可以通过join方式进行关联查询，然后直接映射多个对象，并同时设置这些对象之间的关系。
+   */
+  private String nestedResultMapId;
+  /**
+   * 对应节点的select属性，该属性通过id引用了另一个&lt;select&gt;节点定义，它会把指定的列的值传入select属性指定的select语句中作为参数进行查询。
+   * 使用select属性可能会造成N+1问题。
+   */
+  private String nestedQueryId;
+  /**
+   * 对应节点的notNullColumns属性拆分后的结果
+   */
+  private Set&lt;String&gt; notNullColumns;
+  /**
+   * 对应节点的columnPrefix属性
+   */
+  private String columnPrefix;
+  /**
+   * 处理后的标志，标志有两个：id和constructor
+   */
+  private List&lt;ResultFlag&gt; flags;
+  /**
+   * 对应节点的column属性拆分后生成的结果，composites.size()&gt;0会是column为null
+   */
+  private List&lt;ResultMapping&gt; composites;
+  /**
+   * 对应节点的resultSet属性
+   */
+  private String resultSet;
+  /**
+   * 对应节点的foreignColumn属性
+   */
+  private String foreignColumn;
+  /**
+   * 对应节点的lazy属性，是否延迟加载
+   */
+  private boolean lazy;
+</code></pre>
+<p>ResultMapping中定义了一个内部的Builer类，也应用了建造者模式，该builder类主要用于数据整理和数据校验，实现比较简单。</p>
+<p>另一个主要的类是ResultMap,每个<resultMap>节点都会被解析成一个ResultMap对象，其中每个节点所定义的映射关系，则使用ResultMapping对象表示。</p>
+<p>ResultMap中各个字段的含义如下：</p>
+<pre><code class="java">/**
+   * Configuration对象
+   */
+  private Configuration configuration;
+  /**
+   * &lt;resultMap&gt;的id属性
+   */
+  private String id;
+  /**
+   * &lt;resultMap&gt;的type属性
+   */
+  private Class&lt;?&gt; type;
+  /**
+   * 记录了除&lt;discriminator&gt;节点之外的其他映射关系（即：ResultMapping对象集合）
+   */
+  private List&lt;ResultMapping&gt; resultMappings;
+  /**
+   * 记录了映射关系中带ID标志的映射关系，例如:&lt;id&gt;节点和&lt;constructor&gt;节点的&lt;idArg&gt;节点
+   */
+  private List&lt;ResultMapping&gt; idResultMappings;
+  /**
+   * 记录映射关系中带constructor标志的映射关系，例如:&lt;constructor&gt;所有子元素
+   */
+  private List&lt;ResultMapping&gt; constructorResultMappings;
+  /**
+   * 记录映射关系中不带constructor标志的映射关系
+   */
+  private List&lt;ResultMapping&gt; propertyResultMappings;
+  /**
+   * 记录映射关系中所有的column属性
+   */
+  private Set&lt;String&gt; mappedColumns;
+  /**
+   * 记录映射关系中所有的property属性
+   */
+  private Set&lt;String&gt; mappedProperties;
+  /**
+   * 鉴别器，对应&lt;discriminator&gt;节点
+   */
+  private Discriminator discriminator;
+  /**
+   * 是否有嵌套的结果集映射，如果某个映射关系中存在resultMap属性，且不存在resultSet属性，则为true
+   */
+  private boolean hasNestedResultMaps;
+  /**
+   * 是否含有嵌套查询，如果某个属性映射存在select属性，则为true
+   */
+  private boolean hasNestedQueries;
+  /**
+   * 是否开启自动映射
+   */
+  private Boolean autoMapping;
+</code></pre>
+<h1 id="2-通过例子分析ResultMap"><a href="#2-通过例子分析ResultMap" class="headerlink" title="2. 通过例子分析ResultMap"></a>2. 通过例子分析ResultMap</h1><h2 id="2-1-简单的语句映射"><a href="#2-1-简单的语句映射" class="headerlink" title="2.1. 简单的语句映射"></a>2.1. 简单的语句映射</h2><p>简单的语句映射示例，没有显示指定resultMap，典型的两种：返回一个Map；返回一个JavaBean。具体如下所示：</p>
+<pre><code class="xml">  &lt;!--1. 最简单的映射所有的列到HashMap的键上--&gt;
+    &lt;select id=&quot;selectAuthor&quot; resultType=&quot;java.util.Map&quot;&gt;
+      select author_username , author_password from tb_author where author_id = #{id}
+    &lt;/select&gt;</code></pre>
+<p>或者：</p>
+<pre><code class="xml">  &lt;select id=&quot;selectComment&quot; resultType=&quot;TbComment&quot;&gt;
+    SELECT  comment_id , comment_content FROM tb_comment where post_id = #{post_id}
+  &lt;/select&gt;</code></pre>
+<p>以上两种情况，没有显式的定义ResultMap，Mybatis会为其生成一个ResultMap，来映射结果集吗？</p>
 
             <hr>
           </div>
@@ -178,6 +306,9 @@
                   &nbsp;
                 
                   <a class="hover-with-bg" href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>
+                  &nbsp;
+                
+                  <a class="hover-with-bg" href="/categories/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%88%E4%BA%8C%EF%BC%89">Mybatis初始化（二）</a>
                   &nbsp;
                 
               </span>&nbsp;&nbsp;
@@ -338,7 +469,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Mybatis初始化(二)&nbsp;",
+        "解析<resultMap>节点&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

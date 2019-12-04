@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.8k 字
+                    4.4k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      15 分钟
+                      17 分钟
                   </span>&nbsp;
                 
 
@@ -575,14 +575,21 @@ public class LinkedHashMapTest {
       eldestKey = null;
     }
   }</code></pre>
-<h2 id="2-4-SoftCache-amp-WeakCache"><a href="#2-4-SoftCache-amp-WeakCache" class="headerlink" title="2.4. SoftCache&amp;WeakCache"></a>2.4. SoftCache&amp;WeakCache</h2><p>在开始介绍SofrCache和WeakCache实现之前， 先了解Java提供的引用类型，它们分别是强引用（Strong Reference）、软引用（SoftReference）、弱引用（WeakReference）和幽灵引用（Phantom Reference）。</p>
-<h3 id="2-4-1-Refernece"><a href="#2-4-1-Refernece" class="headerlink" title="2.4.1. Refernece"></a>2.4.1. Refernece</h3><h4 id="2-4-1-1-强引用"><a href="#2-4-1-1-强引用" class="headerlink" title="2.4.1.1. 强引用"></a>2.4.1.1. 强引用</h4><p>强引用是Java编程中最普遍的引用，例如Object obj = new Object()中，新建的Object对象就是被强引用的。如果一个对象被强引用，即使是Java虚拟机内存空间不足时，GC也绝对不会回收该对象。当Java虚拟机内存不足时，就可能会导致内存溢出，我们常见的就是OutOfMemoryError异常。</p>
-<h4 id="2-4-1-2-软引用"><a href="#2-4-1-2-软引用" class="headerlink" title="2.4.1.2. 软引用"></a>2.4.1.2. 软引用</h4><p>软引用是引用强度仅弱于强引用的一种引用，它使用类SoftReference来表示。当Java虚拟机内存不足时，GC会回收那些只被软引用只想的对象，从而避免内存溢出。在GC释放了那些只被软引用指向的对象之后，虚拟机内存依然不足，才会抛出OutOfMemmoryError异常。软引用适合引用那些可以通过其他方式恢复的对象，例如，数据库缓存中的对象就可以从数据库中恢复，所以软引用可以用来实现缓存，下面将要介绍的SoftCache就是通过软引用实现的。</p>
-<p>另外，由于程序使用软引用之前的某个时刻，其所指向的对象可能已经被GC回收掉了，所以通过Reference.get()方法来获取软引用所指向的对象时，总要通过检查该方法返回值是否为null，来判断被软引用的对象是否还存活。</p>
-<h4 id="2-4-1-3-引用队列"><a href="#2-4-1-3-引用队列" class="headerlink" title="2.4.1.3. 引用队列"></a>2.4.1.3. 引用队列</h4><p>在很多场景下，我们的程序需要在一个对象的可达性（是否已经被GC回收）发生变化时得到通知，引用队列就是用于收集这些信息的队列。在创建SoftReference对象时，可以为其关联一个引用队列，当SoftReference所引用的对象被GC回收时，Java虚拟机就会将该SoftReference对象添加到与之关联的引用队列中。当需要检测这些通知信息时，就可以从引用队列中获取这些SoftReference对象。不仅是SoftReference对象，下面介绍的弱引用和幽灵引用都可以关联相应的队列。</p>
-<h4 id="2-4-1-4-弱引用"><a href="#2-4-1-4-弱引用" class="headerlink" title="2.4.1.4. 弱引用"></a>2.4.1.4. 弱引用</h4><p>弱引用的强度比软引用的强度还弱。弱引用使用WeakReference来表示，它可以引用一个对象，但并不阻止被引用的对象被GC回收。在虚拟机进行GC时，如果指向了一个对象的所有引用都是弱引用，那么该对象会被回收。由此可见，只被弱引用所指向的对象的生命周期是两次GC之间的这段时间。而只被软引用所指向的对象可以经历多次GC，知道出现内存紧张的情况才被回收。</p>
-<p>弱引用典型的应用场景就是JDK提供的java.util.WeakHashMap。WeakHashMap.Entity实现继承了WeakReference。Entity弱引用key，强引用vaule。如图所示：</p>
-<h4 id="2-4-1-5-幽灵引用"><a href="#2-4-1-5-幽灵引用" class="headerlink" title="2.4.1.5. 幽灵引用"></a>2.4.1.5. 幽灵引用</h4><h3 id="2-4-2-SoftCache"><a href="#2-4-2-SoftCache" class="headerlink" title="2.4.2. SoftCache"></a>2.4.2. SoftCache</h3><h1 id="3-CacheKey"><a href="#3-CacheKey" class="headerlink" title="3. CacheKey"></a>3. CacheKey</h1><p>在Cache中唯一确定一个缓存项需要使用缓存项的key，Mybatis中因为涉及到动态SQL等方面的因素，其缓存的key不能仅仅通过一个String表示，所以Mybatis提供了CacheKey类来表示缓存项的key，在一个Cachekey对象中可以封装多个影响缓存项的因素。</p>
+<h2 id="2-4-SoftCache-amp-WeakCache"><a href="#2-4-SoftCache-amp-WeakCache" class="headerlink" title="2.4. SoftCache&amp;WeakCache"></a>2.4. SoftCache&amp;WeakCache</h2><p>在开始介绍<code>SofrCache</code>和<code>WeakCache</code>实现之前， 先了解Java提供的引用类型，它们分别是强引用（<code>Strong Reference</code>）、软引用（<code>SoftReference</code>）、弱引用（<code>WeakReference</code>）和幽灵引用（<code>Phantom Reference</code>）。</p>
+<h3 id="2-4-1-Refernece"><a href="#2-4-1-Refernece" class="headerlink" title="2.4.1. Refernece"></a>2.4.1. Refernece</h3><h4 id="2-4-1-1-强引用"><a href="#2-4-1-1-强引用" class="headerlink" title="2.4.1.1. 强引用"></a>2.4.1.1. 强引用</h4><p>强引用是Java编程中最普遍的引用，例如<code>Object obj = new Object()</code>中，新建的<code>Object</code>对象就是被强引用的。如果一个对象被强引用，即使是Java虚拟机内存空间不足时，<code>GC</code>也绝对不会回收该对象。当<code>Java</code>虚拟机内存不足时，就可能会导致内存溢出，我们常见的就是<code>OutOfMemoryError</code>异常。</p>
+<h4 id="2-4-1-2-软引用"><a href="#2-4-1-2-软引用" class="headerlink" title="2.4.1.2. 软引用"></a>2.4.1.2. 软引用</h4><p>软引用是引用强度仅弱于强引用的一种引用，它使用类<code>SoftReference</code>来表示。当Java虚拟机内存不足时，<code>GC</code>会回收那些只被软引用只想的对象，从而避免内存溢出。在<code>GC</code>释放了那些只被软引用指向的对象之后，虚拟机内存依然不足，才会抛出<code>OutOfMemmoryError</code>异常。软引用适合引用那些可以通过其他方式恢复的对象，例如，数据库缓存中的对象就可以从数据库中恢复，所以<strong>软引用可以用来实现缓存</strong>，下面将要介绍的<code>SoftCache</code>就是通过软引用实现的。</p>
+<p>另外，由于程序使用软引用之前的某个时刻，其所指向的对象可能已经被<code>GC</code>回收掉了，所以通过<code>Reference.get()</code>方法来获取软引用所指向的对象时，总要通过检查该方法返回值是否为<code>null</code>，来判断被软引用的对象是否还存活。</p>
+<h4 id="2-4-1-3-引用队列ReferenceQueue"><a href="#2-4-1-3-引用队列ReferenceQueue" class="headerlink" title="2.4.1.3. 引用队列ReferenceQueue"></a>2.4.1.3. 引用队列<code>ReferenceQueue</code></h4><p>在很多场景下，我们的程序需要在一个对象的可达性（是否已经被<code>GC</code>回收）发生变化时得到通知，引用队列就是用于收集这些信息的队列。在创建<code>SoftReference</code>对象时，可以为其关联一个引用队列，当<code>SoftReference</code>所引用的对象被<code>GC</code>回收时，Java虚拟机就会将该<code>SoftReference</code>对象添加到与之关联的引用队列中。当需要检测这些通知信息时，就可以从引用队列中获取这些<code>SoftReference</code>对象。不仅是<code>SoftReference</code>对象，下面介绍的弱引用和幽灵引用都可以关联相应的队列。</p>
+<h4 id="2-4-1-4-弱引用"><a href="#2-4-1-4-弱引用" class="headerlink" title="2.4.1.4. 弱引用"></a>2.4.1.4. 弱引用</h4><p>弱引用的强度比软引用的强度还弱。弱引用使用<code>WeakReference</code>来表示，它可以引用一个对象，但并不阻止被引用的对象被<code>GC</code>回收。在虚拟机进行<code>GC</code>时，如果指向了一个对象的所有引用都是弱引用，那么该对象会被回收。由此可见，只被弱引用所指向的对象的生命周期是两次<code>GC</code>之间的这段时间。而只被软引用所指向的对象可以经历多次<code>GC</code>，知道出现内存紧张的情况才被回收。</p>
+<p>弱引用典型的应用场景就是<code>JDK</code>提供的<code>java.util.WeakHashMap</code>。<code>WeakHashMap.Entity</code>实现继承了<code>WeakReference</code>。<code>Entity</code>弱引用<code>key</code>，强引用<code>vaule</code>。如图所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191203095533-ekS6KA.png" srcset="undefined" alt=""></p>
+<p>当不再有强引用指向key的时候，则key可以被垃圾回收，当key被垃圾回收之后，对应的Entity对象也会被Java虚拟机加入到其他关联队列中。当应用程序瑕疵操作WeakHashMap时，例如对WeakHashMap的扩容操作，就会遍历关联的引用队列，将其中的Entity对象从WeakHashMap中删除。</p>
+<h4 id="2-4-1-5-幽灵引用"><a href="#2-4-1-5-幽灵引用" class="headerlink" title="2.4.1.5. 幽灵引用"></a>2.4.1.5. 幽灵引用</h4><p>在介绍幽灵引用的时候，要先了解一下Java提供的对象终止化机制。在Object类里面有一个finalize()方法，设计该方法的初衷是在一个对象被真正回收之前，执行一些清理工作，但是GC的运行时间是不确定的，所以这些清理工作的实际运行时间也是无法预知的，而且JVM虚拟机不能保证finalize()方法一定会被调用。每个对象的finalize()方法至多由GC执行一次，对于再生对象GC不会再次调用其finalize()方法。另外，使用finalize()方法还会导致严重的内存消耗和性能损失。由于finalize()方法存在的种种问题，该方法现在已经被废弃，而我们可以使用幽灵引用实现其代替方案。</p>
+<p>幽灵引用，又叫“虚引用”，它是最弱的一种引用类型， 有类PhantomReference表示。在引用对象被GC回收时，调用签名介绍的SoftReference以及WeakReference的get()方法，得到的是其引用的对象；当引用的对象已经被GC回收时，则得到null。但是PhantomReference.get()方法始终返回null。</p>
+<p>在创建幽灵引用的时候必须要指定一个引用队列。当GC准备回收一个对象的时候，如果发现它还是幽灵引用，就会在回收对象的内存之前，把该虚引用加入到与之关联的引用队列中。程序可以通过检查该引用队列里面的内容，跟踪对象是否已经被回收并惊醒一些清理工作。幽灵引用还可以用来实现比较精细的内存使用控制，例如应用程序可以在确定一个对象要被回收之后，再申请内存创建对象，但这种需求并不多见。</p>
+<p>介绍完Java提供的四种引用类型，我们来介绍SoftCache的实现。</p>
+<h3 id="2-4-2-SoftCache"><a href="#2-4-2-SoftCache" class="headerlink" title="2.4.2. SoftCache"></a>2.4.2. SoftCache</h3><p>SoftCache中各个字段的含义如下所示：</p>
+<h1 id="3-CacheKey"><a href="#3-CacheKey" class="headerlink" title="3. CacheKey"></a>3. CacheKey</h1><p>在Cache中唯一确定一个缓存项需要使用缓存项的key，Mybatis中因为涉及到动态SQL等方面的因素，其缓存的key不能仅仅通过一个String表示，所以Mybatis提供了CacheKey类来表示缓存项的key，在一个Cachekey对象中可以封装多个影响缓存项的因素。</p>
 <p>CacheKey中可以添加多个对象，有这些对象共同确定两个CacheKey对象是否相同。</p>
 <p>CacheKey中核心字段的含义和功能如下所示：</p>
 

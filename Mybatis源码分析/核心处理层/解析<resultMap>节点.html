@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    1.3k 字
+                    2.1k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      5 分钟
+                      8 分钟
                   </span>&nbsp;
                 
 
@@ -282,7 +282,10 @@
    */
   private Boolean autoMapping;
 </code></pre>
-<h1 id="2-通过例子分析ResultMap"><a href="#2-通过例子分析ResultMap" class="headerlink" title="2. 通过例子分析ResultMap"></a>2. 通过例子分析ResultMap</h1><h2 id="2-1-简单的语句映射"><a href="#2-1-简单的语句映射" class="headerlink" title="2.1. 简单的语句映射"></a>2.1. 简单的语句映射</h2><p>简单的语句映射示例，没有显示指定resultMap，典型的两种：返回一个Map；返回一个JavaBean。具体如下所示：</p>
+<h1 id="2-通过例子分析ResultMap"><a href="#2-通过例子分析ResultMap" class="headerlink" title="2. 通过例子分析ResultMap"></a>2. 通过例子分析ResultMap</h1><p>结果映射（resultMap）有如下结构（Mybatis官网截图）：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191204180629-di33gF.png" srcset="undefined" alt=""></p>
+<p>为了在解析源码的同时也能了解resultMap是如何使用的，我打算分步骤进行，一步一步去分析，由易到难。</p>
+<h2 id="2-1-简单的语句映射"><a href="#2-1-简单的语句映射" class="headerlink" title="2.1. 简单的语句映射"></a>2.1. 简单的语句映射</h2><p>简单的语句映射示例，没有显示指定resultMap，典型的两种：返回一个Map；返回一个JavaBean。具体如下所示：</p>
 <pre><code class="xml">  &lt;!--1. 最简单的映射所有的列到HashMap的键上--&gt;
     &lt;select id=&quot;selectAuthor&quot; resultType=&quot;java.util.Map&quot;&gt;
       select author_username , author_password from tb_author where author_id = #{id}
@@ -291,8 +294,82 @@
 <pre><code class="xml">  &lt;select id=&quot;selectComment&quot; resultType=&quot;TbComment&quot;&gt;
     SELECT  comment_id , comment_content FROM tb_comment where post_id = #{post_id}
   &lt;/select&gt;</code></pre>
-<p>以上两种情况，没有显式的定义ResultMap，Mybatis会为其生成一个ResultMap，来映射结果集吗？</p>
+<p>以上两种情况，没有显式的定义ResultMap，Mybatis会为其生成ResultMap对象吗？如果会生成，生成的时机是什么时候呢？</p>
+<p>带着以上的两个问题，我开始了我的探索。</p>
+<ul>
+<li>首先我想到的是XMLMapperBuilder.configurationElement()方法帮我做了以上的问题。</li>
+</ul>
+<pre><code class="java">private void configurationElement(XNode context) {
+    try {
+      //获取&lt;mapper&gt;节点的namespace属性
+      String namespace = context.getStringAttribute(&quot;namespace&quot;);
+      if (namespace == null || namespace.equals(&quot;&quot;)) {
+        throw new BuilderException(&quot;Mapper&#39;s namespace cannot be empty&quot;);
+      }
+      //设置BuilderAssistant的currentNamespace字段，记录当前命名空间
+      builderAssistant.setCurrentNamespace(namespace);
+      //解析&lt;cache-red&gt;节点
+      cacheRefElement(context.evalNode(&quot;cache-ref&quot;));
+      //解析&lt;cache&gt;节点
+      cacheElement(context.evalNode(&quot;cache&quot;));
+      //解析&lt;parameterMap&gt;节点
+      parameterMapElement(context.evalNodes(&quot;/mapper/parameterMap&quot;));
+      //解析&lt;resultMap&gt;节点
+      resultMapElements(context.evalNodes(&quot;/mapper/resultMap&quot;));
+      //解析&lt;sql&gt;节点
+      sqlElement(context.evalNodes(&quot;/mapper/sql&quot;));
+      //解析&lt;select&gt;、&lt;insert&gt;、&lt;update&gt;、&lt;delete&gt;节点
+      buildStatementFromContext(context.evalNodes(&quot;select|insert|update|delete&quot;));
+    } catch (Exception e) {
+      throw new BuilderException(&quot;Error parsing Mapper XML. The XML location is &#39;&quot; + resource + &quot;&#39;. Cause: &quot; + e, e);
+    }
+  }</code></pre>
+<ul>
+<li><p><code>resultMapElements(context.evalNodes(&quot;/mapper/resultMap&quot;))</code>可以解析显示的<resultMap>节点，并且将其添加到Configuration的resultMaps集合中（后续会介绍其过程），并没有发现“隐式的<resultMap>”如何处理。</p>
+</li>
+<li><p>其实所谓的“隐式的<resultMap>”就是说<select>节点中没有定义resultMap属性，那我就猜测是不是在解析<select>节点的时候，生成了ResultMap对象，并将对象存入到Configuration的resultMaps集合中的呢？</p>
+</li>
+<li><p>通过跟踪<code>buildStatementFromContext(context.evalNodes(&quot;select|insert|update|delete&quot;))</code>代码，我发现MapperStatement.builder().resultMaps()方法添加了resultMap，而这个方法的参数是通过MapperBuilderAssistant.getStatementResultMaps()方法获取resultMaps，代码如下所示：</p>
+<pre><code>  private List&lt;ResultMap&gt; getStatementResultMaps(
+      String resultMap,
+      Class&lt;?&gt; resultType,
+      String statementId) {
+    resultMap = applyCurrentNamespace(resultMap, true);
 
+    List&lt;ResultMap&gt; resultMaps = new ArrayList&lt;&gt;();
+    if (resultMap != null) {
+      String[] resultMapNames = resultMap.split(&quot;,&quot;);
+      for (String resultMapName : resultMapNames) {
+        try {
+          resultMaps.add(configuration.getResultMap(resultMapName.trim()));
+        } catch (IllegalArgumentException e) {
+          throw new IncompleteElementException(&quot;Could not find result map &#39;&quot; + resultMapName + &quot;&#39; referenced from &#39;&quot; + statementId + &quot;&#39;&quot;, e);
+        }
+      }
+    } else if (resultType != null) {
+      ResultMap inlineResultMap = new ResultMap.Builder(
+          configuration,
+          statementId + &quot;-Inline&quot;,
+          resultType,
+          new ArrayList&lt;&gt;(),
+          null).build();
+      resultMaps.add(inlineResultMap);
+    }
+    return resultMaps;
+  }</code></pre></li>
+<li><p>在上述的 else if代码中发现，如果从Configuration中获取的resultMap为null，并且resultType参数不为空，那么会生成一个内部的inlineResultMap，而这个map最终被添加到了MapperStatement.resultMaps属性中，并没有添加到Configuration的resultMaps集合中。</p>
+</li>
+</ul>
+<p>故而：</p>
+<p>总结如下：</p>
+<ul>
+<li><p>如果没有表明resultMap，那么mybatis会为其自动生成一个ResultMap对象来完成映射。</p>
+</li>
+<li><p>并且生成的时机是在解析<select>标签时进行的，同时生成的ResultMap不会存入到Configuration的resultMaps集合中（表明Configuration的resultMaps集合中存储的都是显示的ResultMap），而是直接存储在MapperStatement的resultMaps中。</p>
+</li>
+</ul>
+<p>简单的语句映射看似简单，其实涉及到解析<select>、<insert>、<update>、<delete>节点，即<code>buildStatementFromContext(context.evalNodes(&quot;select|insert|update|delete&quot;))</code>这个会在后续章节讲到，这里只是抛砖引玉。</p>
+<h2 id="2-2-id-amp-result"><a href="#2-2-id-amp-result" class="headerlink" title="2.2. id &amp; result"></a>2.2. id &amp; result</h2><h2 id="2-3-constructor"><a href="#2-3-constructor" class="headerlink" title="2.3. constructor"></a>2.3. constructor</h2><h2 id="2-4-association"><a href="#2-4-association" class="headerlink" title="2.4. association"></a>2.4. association</h2><h2 id="2-5-collection"><a href="#2-5-collection" class="headerlink" title="2.5. collection"></a>2.5. collection</h2><h2 id="2-6-discriminator"><a href="#2-6-discriminator" class="headerlink" title="2.6. discriminator"></a>2.6. discriminator</h2><h2 id="2-7-autoMapping"><a href="#2-7-autoMapping" class="headerlink" title="2.7. autoMapping"></a>2.7. autoMapping</h2>
             <hr>
           </div>
           <br>

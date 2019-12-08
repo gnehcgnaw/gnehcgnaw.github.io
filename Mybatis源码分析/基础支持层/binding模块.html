@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    2.8k 字
+                    3.1k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      12 分钟
+                      14 分钟
                   </span>&nbsp;
                 
 
@@ -299,7 +299,7 @@ public interface CommentMapper {
       throw new BindingException(&quot;Error getting mapper instance. Cause: &quot; + e, e);
     }
   }</code></pre>
-<h1 id="2-MapperProxyFactory"><a href="#2-MapperProxyFactory" class="headerlink" title="2. MapperProxyFactory"></a>2. MapperProxyFactory</h1><p>MapperProxyFactory主要负责创建代理对象，其中核心字段的含义如下所示：</p>
+<h1 id="2-MapperProxyFactory"><a href="#2-MapperProxyFactory" class="headerlink" title="2. MapperProxyFactory"></a>2. MapperProxyFactory</h1><p><code>MapperProxyFactory</code>主要负责创建代理对象，其中核心字段的含义如下所示：</p>
 <pre><code class="java">  /**
    * 需要代理的MapperInterface对象
    */
@@ -310,7 +310,7 @@ public interface CommentMapper {
    *    value 是 对应的MappedMethodInvoker
    */
   private final Map&lt;Method, MapperMethodInvoker&gt; methodCache = new ConcurrentHashMap&lt;&gt;();</code></pre>
-<p>MapperProxyFactory.newInstance()方法实现了mapperInterface接口的代理对象的功能，具体代码如下所示：</p>
+<p><code>MapperProxyFactory.newInstance()</code>方法实现了<code>mapperInterface</code>接口的代理对象的功能，具体代码如下所示：</p>
 <pre><code class="java">  @SuppressWarnings(&quot;unchecked&quot;)
   protected T newInstance(MapperProxy&lt;T&gt; mapperProxy) {
     //创建实现了MapperInterface接口的代理对象，从这里可以看出MapperProxy实现了InvocationHandler接口
@@ -322,8 +322,60 @@ public interface CommentMapper {
     final MapperProxy&lt;T&gt; mapperProxy = new MapperProxy&lt;&gt;(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }</code></pre>
-<h1 id="3-MapperProxy"><a href="#3-MapperProxy" class="headerlink" title="3. MapperProxy"></a>3. MapperProxy</h1><p>MapperProxy在Mybatis3.4版本和mybatis3.5版本是有很大差别的，分别分析不同版本的代码，了解Mybatis官方为什么要这么做？</p>
-<h2 id="3-1-Mybatis3-4的MapperProxy"><a href="#3-1-Mybatis3-4的MapperProxy" class="headerlink" title="3.1. Mybatis3.4的MapperProxy"></a>3.1. Mybatis3.4的MapperProxy</h2><h2 id="3-2-Mybatis3-5的MapperProxy-amp-MapperProxy-MapperMethodInvoker"><a href="#3-2-Mybatis3-5的MapperProxy-amp-MapperProxy-MapperMethodInvoker" class="headerlink" title="3.2. Mybatis3.5的MapperProxy&amp;MapperProxy.MapperMethodInvoker"></a>3.2. Mybatis3.5的MapperProxy&amp;MapperProxy.MapperMethodInvoker</h2><p>MapperProxy实现了InvocationHandler接口，那么该类的实现就是代理对象的核心逻辑，MapperProxy中核心字段的含义如下：</p>
+<h1 id="3-MapperProxy"><a href="#3-MapperProxy" class="headerlink" title="3. MapperProxy"></a>3. MapperProxy</h1><p><code>MapperProxy</code>在<code>Mybatis3.4</code>版本和<code>mybatis3.5</code>版本是有很大差别的，分别分析不同版本的代码，了解<code>Mybatis</code>官方为什么要这么做？</p>
+<h2 id="3-1-Mybatis3-4的MapperProxy"><a href="#3-1-Mybatis3-4的MapperProxy" class="headerlink" title="3.1. Mybatis3.4的MapperProxy"></a>3.1. Mybatis3.4的MapperProxy</h2><p><code>Mybatis3.4</code>的<code>MapperProxy</code>只展示代码，分析在下面的<code>Mybatis3.5</code>的<code>MapperProxy</code>中进行。</p>
+<p><code>MapperProxy</code>中核心字段的含义如下：</p>
+<pre><code class="java">  private final SqlSession sqlSession;
+  private final Class&lt;T&gt; mapperInterface;
+  private final Map&lt;Method, MapperMethod&gt; methodCache;</code></pre>
+<p><code>MapperProxy.invoke()</code>方法，如下所示：</p>
+<pre><code class="java"> @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    try {
+      if (Object.class.equals(method.getDeclaringClass())) {
+        return method.invoke(this, args);
+      } else if (isDefaultMethod(method)) {
+        return invokeDefaultMethod(proxy, method, args);
+      }
+    } catch (Throwable t) {
+      throw ExceptionUtil.unwrapThrowable(t);
+    }
+    final MapperMethod mapperMethod = cachedMapperMethod(method);
+    return mapperMethod.execute(sqlSession, args);
+  }</code></pre>
+<p><code>MapperProxy.cachedMapperMethod()</code>方法，如下所示：</p>
+<pre><code>  private MapperMethod cachedMapperMethod(Method method) {
+    MapperMethod mapperMethod = methodCache.get(method);
+    if (mapperMethod == null) {
+      mapperMethod = new MapperMethod(mapperInterface, method, sqlSession.getConfiguration());
+      methodCache.put(method, mapperMethod);
+    }
+    return mapperMethod;
+  }</code></pre><p><code>MapperProxy</code>中的其他方法，如下所示：</p>
+<pre><code>@UsesJava7
+  private Object invokeDefaultMethod(Object proxy, Method method, Object[] args)
+      throws Throwable {
+    final Constructor&lt;MethodHandles.Lookup&gt; constructor = MethodHandles.Lookup.class
+        .getDeclaredConstructor(Class.class, int.class);
+    if (!constructor.isAccessible()) {
+      constructor.setAccessible(true);
+    }
+    final Class&lt;?&gt; declaringClass = method.getDeclaringClass();
+    return constructor
+        .newInstance(declaringClass,
+            MethodHandles.Lookup.PRIVATE | MethodHandles.Lookup.PROTECTED
+                | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PUBLIC)
+        .unreflectSpecial(method, declaringClass).bindTo(proxy).invokeWithArguments(args);
+  }
+
+  /**
+   * Backport of java.lang.reflect.Method#isDefault()
+   */
+  private boolean isDefaultMethod(Method method) {
+    return (method.getModifiers()
+        &amp; (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC
+        &amp;&amp; method.getDeclaringClass().isInterface();
+  }</code></pre><h2 id="3-2-Mybatis3-5的MapperProxy-amp-MapperProxy-MapperMethodInvoker"><a href="#3-2-Mybatis3-5的MapperProxy-amp-MapperProxy-MapperMethodInvoker" class="headerlink" title="3.2. Mybatis3.5的MapperProxy&amp;MapperProxy.MapperMethodInvoker"></a>3.2. Mybatis3.5的MapperProxy&amp;MapperProxy.MapperMethodInvoker</h2><p><code>MapperProxy</code>实现了<code>InvocationHandler</code>接口，那么该类的实现就是代理对象的核心逻辑，<code>MapperProxy</code>中核心字段的含义如下：</p>
 <pre><code class="java">  /**
    * MethodHandles.Lookup 允许查找的模式
    */
@@ -352,7 +404,7 @@ public interface CommentMapper {
    */
   private final Map&lt;Method, MapperMethodInvoker&gt; methodCache;
 </code></pre>
-<p>MapperProxy在初始化的时候，首先要加载如下静态代码段，具体如下所示：</p>
+<p><code>MapperProxy</code>在初始化的时候，首先要加载如下静态代码段，具体如下所示：</p>
 <pre><code class="java">  static {
     Method privateLookupIn;
     try {
@@ -385,9 +437,9 @@ public interface CommentMapper {
     lookupConstructor = lookup;
   }
 </code></pre>
-<p>刚开始看如上代码有点懵逼，因为我的java.lang.MethodHandles中并没有找到方法名称为privateLookupIn的方法，后来根据参看<a href="https://docs.oracle.com/javase/9/docs/api/java/lang/invoke/MethodHandles.html" target="_blank" rel="noopener">Java官方文档</a>（Java9版本）发现这是Java9新增的一个方法，通过查看官方文档关于这个方法的描述，也就读懂了上面的代码。</p>
-<p>对比Mybatis3.4是没有这段的，我发现引入了MethodHandle，引入的原因其实很简单：一是为了提高性能，二是为了安全，具体可以参看Java9版本关于MethodHandle的相关描述。</p>
-<p>我这里简单带一下思路：其实都是为了实现动态代理，只不过加入MethodHandle之后，流程发生了一点消息的变化，我写了一个简单的Demo，如下所示：</p>
+<p>刚开始看如上代码有点懵逼，因为我的<code>java.lang.MethodHandles</code>中并没有找到方法名称为<code>privateLookupIn</code>的方法，后来根据参看<a href="https://docs.oracle.com/javase/9/docs/api/java/lang/invoke/MethodHandles.html" target="_blank" rel="noopener">Java官方文档</a>（<code>Java9</code>版本）发现这是<code>Java9</code>新增的一个方法，通过查看官方文档关于这个方法的描述，也就读懂了上面的代码。</p>
+<p><strong>对比<code>Mybatis3.4</code>是没有这段的，我发现引入了<code>MethodHandle</code>，引入的原因其实很简单：一是为了提高性能，二是为了安全，具体可以参看<code>Java9</code>版本关于<code>MethodHandle</code>的相关描述。</strong></p>
+<p>我这里简单带一下思路：其实都是为了实现动态代理，只不过加入<code>MethodHandle</code>之后，流程发生了一点消息的变化，我写了一个简单的<code>Demo</code>，如下所示：</p>
 <pre><code class="java">  @Test
   public void test1() throws Throwable{
     MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -395,13 +447,13 @@ public interface CommentMapper {
     System.out.println((String) replace.invoke(&quot;zhangsan&quot;, Character.valueOf(&#39;g&#39;), &#39;_&#39;));
 
   }</code></pre>
-<p>通过Demo发现要想执行invoke方法要分如下三步：</p>
+<p>通过<code>Demo</code>发现要想执行<code>invoke</code>方法要分如下三步：</p>
 <ol>
-<li>获取Lookup对象，通过MethodHandles.lookup()，返回MethodHandles.Lookup对象；</li>
-<li>根据得到的lookup对象去查找要执行的方法，并返回其封装的MethodHandle对象；</li>
-<li>根据得到的methodHandle对象，调用invoke()方法去执行要代理对象要执行的方法。</li>
+<li>获取<code>Lookup</code>对象，通过<code>MethodHandles.lookup()</code>，返回<code>MethodHandles.Lookup</code>对象；</li>
+<li>根据得到的<code>lookup</code>对象去查找要执行的方法，并返回其封装的<code>MethodHandle</code>对象；</li>
+<li>根据得到的<code>methodHandle</code>对象，调用<code>invoke()</code>方法去执行要代理对象要执行的方法。</li>
 </ol>
-<p>不管是Mybatis3.4和3.5版本，MapperProxy.invoke()方法还是MapperProxy中的重中之重，Mybatis3.5的invoke()方法如下所示：</p>
+<p>不管是Mybatis3.4和3.5版本，<code>MapperProxy.invoke()</code>方法还是<code>MapperProxy</code>中的重中之重，<code>Mybatis3.5</code>的<code>invoke()</code>方法如下所示：</p>
 <pre><code class="java">@Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
@@ -421,7 +473,7 @@ public interface CommentMapper {
       throw ExceptionUtil.unwrapThrowable(t);
     }
   }</code></pre>
-<p>发现其调用了cachedInvoke()方法，cachedInvoke()如下所示：</p>
+<p>发现其调用了<code>cachedInvoke()</code>方法，<code>cachedInvoke()</code>如下所示：</p>
 <pre><code class="java">private MapperMethodInvoker cachedInvoker(Object proxy, Method method, Object[] args) throws Throwable {
   try {
     //从缓存中查找method是否存在，如果不存在就创建一个并存入集合
@@ -451,7 +503,7 @@ public interface CommentMapper {
     throw cause == null ? re : cause;
   }
 }</code></pre>
-<p>以上代码还涉及到如下代码的调用，MapperProxy的其他方法，如下所示：</p>
+<p>以上代码还涉及到如下代码的调用，<code>MapperProxy</code>的其他方法，如下所示：</p>
 <pre><code class="java">private MethodHandle getMethodHandleJava9(Method method)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     final Class&lt;?&gt; declaringClass = method.getDeclaringClass();
@@ -506,9 +558,11 @@ public interface CommentMapper {
       return methodHandle.bindTo(proxy).invokeWithArguments(args);
     }
   }</code></pre>
-<p>通过以上代码的分析，我总结如下：</p>
+<p>通过以上代码的分析，结合如下示例，我用时序图的形式描述了其执行流程，如下图所示：</p>
+<pre><code class="java">CommentMapper mapper = sqlSessionFactory.openSession().getMapper(CommentMapper.class);
+    System.out.println(mapper.selectTbComment(1));</code></pre>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209014817-pEQn5X.png" srcset="undefined" alt=""></p>
-<p>所以接下来应该分析MapperMethod类了。</p>
+<p>根据执行的时序图，我们接下来就应该去分析<code>MapperMethod</code>类了。</p>
 <h1 id="4-MapperMethod"><a href="#4-MapperMethod" class="headerlink" title="4. MapperMethod"></a>4. MapperMethod</h1>
             <hr>
           </div>

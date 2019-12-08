@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    11 字
+                    280 字
                   </span>&nbsp;
                 
 
@@ -161,7 +161,47 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="git-clone提速"><a href="#git-clone提速" class="headerlink" title="git_clone提速"></a>git_clone提速</h1><h2 id="1-编写item2login-sh脚本文件"><a href="#1-编写item2login-sh脚本文件" class="headerlink" title="1. 编写item2login.sh脚本文件"></a>1. 编写<code>item2login.sh</code>脚本文件</h2>
+            <h1 id="git-clone提速"><a href="#git-clone提速" class="headerlink" title="git_clone提速"></a>git_clone提速</h1><p>此文转载自：<a href="https://blog.csdn.net/havedoor/article/details/83350768" target="_blank" rel="noopener">https://blog.csdn.net/havedoor/article/details/83350768</a></p>
+<h1 id="1-host重定向"><a href="#1-host重定向" class="headerlink" title="1. host重定向"></a>1. host重定向</h1><p>通过<a href="http://tool.chinaz.com/dns寻找`github.com`最高效地址，就是`TTL`最短的`IP`地址。" target="_blank" rel="noopener">http://tool.chinaz.com/dns寻找`github.com`最高效地址，就是`TTL`最短的`IP`地址。</a></p>
+<ul>
+<li><p>寻找<code>github.com</code>的<code>TTL</code>最短的<code>IP</code>地址</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208231138-GtLhky.png" srcset="undefined" alt=""></p>
+</li>
+<li><p>寻找<code>github.global.ssl.fastly.net</code>的<code>TTL</code>最短的<code>IP</code>地址</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208231154-MEUQ5i.png" srcset="undefined" alt=""></p>
+</li>
+<li><p>配置<code>hosts</code></p>
+<pre><code>vim /etc/hosts</code></pre><pre><code>13.229.188.59 github.com
+31.13.83.8    github.global.ssl.fastly.net</code></pre></li>
+</ul>
+<h1 id="2-通过码云中转"><a href="#2-通过码云中转" class="headerlink" title="2. 通过码云中转"></a>2. 通过码云中转</h1><p>在码云上新建一个项目，然后选“导入已有项目”，把<code>github</code>上要<code>clone</code>的工程放进去，一般需要十几分钟完成创建。</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208232051-XxMkD2.png" srcset="undefined" alt=""></p>
+<h1 id="3-通过代理方式"><a href="#3-通过代理方式" class="headerlink" title="3. 通过代理方式"></a>3. 通过代理方式</h1><p>这种方式需要有<code>VPN</code>代理，本人使用的是<code>Lantern</code>收费版的，感觉甚是不错。</p>
+<ul>
+<li><p>查看自己<code>VPN</code>的<code>proxy</code>端口</p>
+<ul>
+<li>点击Lantern的显示蓝灯，如下所示：</li>
+</ul>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208232954-Ss3M1X.png" srcset="undefined" style="zoom:67%;" />
+
+<ul>
+<li>弹出浏览器页面，在地址栏可以看到代理端口，如下所示：</li>
+</ul>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208233330-ooV2X5.png" srcset="undefined" style="zoom:67%;" />
+</li>
+<li><p>设置代理（只针对<code>github</code>）</p>
+</li>
+</ul>
+<pre><code>git config --global http.http://github.com.proxy 127.0.0.1:51181
+git config --global https.https://github.com.proxy 127.0.0.1:51181</code></pre><ul>
+<li>删除代理</li>
+</ul>
+<pre><code>git config --global --unset http.https://github.com.proxy
+git config --global --unset https.https://github.com.proxy</code></pre><ul>
+<li>查看<code>Git</code>全局配置</li>
+</ul>
+<pre><code>git config --global --list</code></pre><p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208234211-1ErGIK.png" srcset="undefined" alt=""></p>
+
             <hr>
           </div>
           <br>

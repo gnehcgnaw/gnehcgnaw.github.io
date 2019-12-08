@@ -134,6 +134,75 @@
     
     
       <div class="col-12 col-md-4 m-auto">
+        <a href="/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/git_clone%E6%8F%90%E9%80%9F.html" target="_self">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208234211-1ErGIK.png" srcset="undefined" alt="git_clone提速" class="img-fluid rounded z-depth-3 index-thumbnails">
+        </a>
+      </div>
+    
+    <div class="col-12 col-md-8 m-auto">
+      <a href="/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/git_clone%E6%8F%90%E9%80%9F.html">
+        <p class="h4 index-header">git_clone提速</p>
+        
+        
+          
+        
+        <div class="index-excerpt" >
+          <div class="index-text mb-1">git_clone提速此文转载自：https://blog.csdn.net/havedoor/article/details/83350768
+1. host重定向通过http://tool.chinaz.com/dns寻找`github.com`最高效地址，就是`TTL`最短的`IP`地址。
+
+寻找github.com的TTL最短的IP地址
+
+
+寻找github.global.ssl.fastly.net的TTL最短的IP地址
+
+
+配置hosts
+vim /etc/hosts13.229.188.59 github.com
+31.13.83.8    github.global.ssl.fastly.net
+
+2. 通过码云中转在码云上新建一个项目，然后选“导入已有项目”，把github上要clone的工程放进去，一般需要十几分钟完成创建。
+
+3. 通过代理方式这种方式需要有VPN代理，本人使用的是Lantern收费版的，感觉甚是不错。
+
+查看自己VPN的proxy端口
+
+点击Lantern的显示蓝灯，如下所示：
+
+
+
+
+弹出浏览器页面，在地址栏可以看到代理端口，如下所示：
+
+
+
+</div>
+        </div>
+      </a>
+
+      <div>
+        
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-12-08&nbsp;&nbsp;
+        
+        
+          <i class="iconfont icon-inbox"></i>
+          
+            <a href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>&nbsp;
+          &nbsp;
+        
+        
+          <i class="iconfont icon-tag"></i>
+          
+            <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>&nbsp;
+          
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 mx-auto">
+    
+    
+      <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97.html" target="_self">
           <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129215610-z8yGCb.jpeg" srcset="undefined" alt="缓存模块" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
@@ -494,58 +563,6 @@ XMLMapperBuiler.cacheElement()方法主要负责解析节点，具体实现如�
     
     
       <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129232712-O9OnnZ.png" srcset="undefined" alt="Mybatis初始化(一)" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html">
-        <p class="h4 index-header">Mybatis初始化(一)</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">Mybatis初始化(一)
-因为篇幅的原因，此部分只分析mybatis-config.xml配置文件的解析。
-
-类似于Spring，Mybatis等灵活性和扩展性都很高的开源框架都提供了很多配置项，开发人员需要在使用时提供相应的配置信息，实现相应的需求。Mybatis中的配置文件主要有两个，分别是mybatis-config.xml配置文件和映射配置文件。
-现在主流的配置方式除了使用XML配置文件，还会配合注解进行配置。在Mybatis初始化过程中，除了会读取mybatis-config.xml配置文件以及映射配置文件，还会加载配置文件指定的类，处理类中的注解，创建一些配置对象，最终完成框架中各个模块的初始化。另外，也可以使用Java API方式对Mybatis进行配置，这种硬编码的配置方式主要用在配置量比较少且配置信息不常变化的场景下。
-1. 建造者模式2. BaseBuidlerBaseBuilder的子类如下所示：
-
-
-因为VelocitySqlSourceBuilder只是一个测试用例，所以我暂且不把它划为BaseBuilder，包括其静态内部类
-ParameterMappin</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-28&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E8%A7%A3%E6%9E%90%3CresultMap%3E%E8%8A%82%E7%82%B9.html" target="_self">
           <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129215610-z8yGCb.jpeg" srcset="undefined" alt="Mybatis初始化(二)——解析&lt;resultMap&gt;节点" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
@@ -590,43 +607,42 @@ ParameterMappin</div>
     
     
       <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2.html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127092014-iVyREJ.png" srcset="undefined" alt="类型转换" class="img-fluid rounded z-depth-3 index-thumbnails">
+        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html" target="_self">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129232712-O9OnnZ.png" srcset="undefined" alt="Mybatis初始化(一)" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
       </div>
     
     <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2.html">
-        <p class="h4 index-header">类型转换</p>
+      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html">
+        <p class="h4 index-header">Mybatis初始化(一)</p>
         
         
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">类型转换1. 概述​        JDBC数据类型与Java语言中的数据类型并不是完全对应的，所以在PreparedStatement为SQL语句绑定参数是，需要从Java类型转换成JDBC类型，而从ResultSet中获取数据时，则需要从JDBC类型转换成Java类型。Mybatis使用类型转换器完成上述两种转换。据图如下图所示：
+          <div class="index-text mb-1">Mybatis初始化(一)
+因为篇幅的原因，此部分只分析mybatis-config.xml配置文件的解析。
 
-​        在Mybatis中使用JdbcType这种枚举类型代表JDBC中的数据类型，该枚举类型中定义了TYPE_CODE字段，记录了JDBC类中在java.sql.Types中相应的常量编码，并通过一个静态集合codeLookUp（HashMap&lt;Integer,JdbcType&gt;类型）维护了常量编码与JdbcType之间的对应关系。
-
-2. TypeHandler​        Mybatis中所有的类型转换器都继承了TypeHandler接口，在TypeHandler接口中定义了如下四种方法，这四种方法分为两类：
-
-setParameter()方法
-负责将数据由Java类型转换成JdbcType类型
+类似于Spring，Mybatis等灵活性和扩展性都很高的开源框架都提供了很多配置项，开发人员需要在使用时提供相应的配置信息，实现相应的需求。Mybatis中的配置文件主要有两个，分别是mybatis-config.xml配置文件和映射配置文件。
+现在主流的配置方式除了使用XML配置文件，还会配合注解进行配置。在Mybatis初始化过程中，除了会读取mybatis-config.xml配置文件以及映射配置文件，还会加载配置文件指定的类，处理类中的注解，创建一些配置对象，最终完成框架中各个模块的初始化。另外，也可以使用Java API方式对Mybatis进行配置，这种硬编码的配置方式主要用在配置量比较少且配置信息不常变化的场景下。
+1. 建造者模式2. BaseBuidlerBaseBuilder的子类如下所示：
 
 
-getResultS</div>
+因为VelocitySqlSourceBuilder只是一个测试用例，所以我暂且不把它划为BaseBuilder，包括其静态内部类
+ParameterMappin</div>
         </div>
       </a>
 
       <div>
         
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-27&nbsp;&nbsp;
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-28&nbsp;&nbsp;
         
         
           <i class="iconfont icon-inbox"></i>
           
             <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
           
-            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
+            <a href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>&nbsp;
           &nbsp;
         
         

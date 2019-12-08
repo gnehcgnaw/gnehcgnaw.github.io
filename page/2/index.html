@@ -134,6 +134,59 @@
     
     
       <div class="col-12 col-md-4 m-auto">
+        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2.html" target="_self">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191127092014-iVyREJ.png" srcset="undefined" alt="类型转换" class="img-fluid rounded z-depth-3 index-thumbnails">
+        </a>
+      </div>
+    
+    <div class="col-12 col-md-8 m-auto">
+      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2.html">
+        <p class="h4 index-header">类型转换</p>
+        
+        
+          
+        
+        <div class="index-excerpt" >
+          <div class="index-text mb-1">类型转换1. 概述​        JDBC数据类型与Java语言中的数据类型并不是完全对应的，所以在PreparedStatement为SQL语句绑定参数是，需要从Java类型转换成JDBC类型，而从ResultSet中获取数据时，则需要从JDBC类型转换成Java类型。Mybatis使用类型转换器完成上述两种转换。据图如下图所示：
+
+​        在Mybatis中使用JdbcType这种枚举类型代表JDBC中的数据类型，该枚举类型中定义了TYPE_CODE字段，记录了JDBC类中在java.sql.Types中相应的常量编码，并通过一个静态集合codeLookUp（HashMap&lt;Integer,JdbcType&gt;类型）维护了常量编码与JdbcType之间的对应关系。
+
+2. TypeHandler​        Mybatis中所有的类型转换器都继承了TypeHandler接口，在TypeHandler接口中定义了如下四种方法，这四种方法分为两类：
+
+setParameter()方法
+负责将数据由Java类型转换成JdbcType类型
+
+
+getResultS</div>
+        </div>
+      </a>
+
+      <div>
+        
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-27&nbsp;&nbsp;
+        
+        
+          <i class="iconfont icon-inbox"></i>
+          
+            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
+          &nbsp;
+        
+        
+          <i class="iconfont icon-tag"></i>
+          
+            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 mx-auto">
+    
+    
+      <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E5%8F%8D%E5%B0%84%E5%B7%A5%E5%85%B7%E7%AE%B1.html" target="_self">
           <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126092626-rve1an.png" srcset="undefined" alt="反射工具箱" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
@@ -299,75 +352,6 @@ lindex $argv 3：password
           <i class="iconfont icon-tag"></i>
           
             <a href="/tags/Mac%E6%8A%80%E5%B7%A7">Mac技巧</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/git_clone%E6%8F%90%E9%80%9F.html" target="_self">
-          <img src="https://raw.githubusercontent.com/gnehcgnaw/gnehcgnaw.github.io/imgs/uploads/20191115204208-mTkAoN.png" srcset="undefined" alt="git_clone提速" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7/git_clone%E6%8F%90%E9%80%9F.html">
-        <p class="h4 index-header">git_clone提速</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">git_clone提速此文转载自：https://blog.csdn.net/havedoor/article/details/83350768
-1. host重定向通过http://tool.chinaz.com/dns寻找`github.com`最高效地址，就是`TTL`最短的`IP`地址。
-
-寻找github.com的TTL最短的IP地址
-
-
-寻找github.global.ssl.fastly.net的TTL最短的IP地址
-
-
-配置hosts
-vim /etc/hosts13.229.188.59 github.com
-31.13.83.8    github.global.ssl.fastly.net
-
-2. 通过码云中转在码云上新建一个项目，然后选“导入已有项目”，把github上要clone的工程放进去，一般需要十几分钟完成创建。
-
-3. 通过代理方式这种方式需要有VPN代理，本人使用的是Lantern收费版的，感觉甚是不错。
-
-查看自己VPN的proxy端口
-
-点击Lantern的显示蓝灯，如下所示：
-
-
-
-
-弹出浏览器页面，在地址栏可以看到代理端口，如下所示：
-
-
-
-</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-15&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>&nbsp;
           
         
       </div>

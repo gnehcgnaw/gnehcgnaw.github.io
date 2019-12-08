@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    2.2k 字
+                    5.2k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      8 分钟
+                      21 分钟
                   </span>&nbsp;
                 
 
@@ -282,8 +282,31 @@
    */
   private Boolean autoMapping;
 </code></pre>
-<h1 id="2-通过例子分析ResultMap"><a href="#2-通过例子分析ResultMap" class="headerlink" title="2. 通过例子分析ResultMap"></a>2. 通过例子分析<code>ResultMap</code></h1><p>结果映射（<code>resultMap</code>）有如下结构（<a href="https://mybatis.org/mybatis-3/zh/sqlmap-xml.html" target="_blank" rel="noopener">Mybatis官网</a>【往下翻页到<code>resultMap</code>模块】截图）：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191204180629-di33gF.png" srcset="undefined" alt=""></p>
+<h1 id="2-通过例子分析ResultMap"><a href="#2-通过例子分析ResultMap" class="headerlink" title="2. 通过例子分析ResultMap"></a>2. 通过例子分析<code>ResultMap</code></h1><p>结果映射（<code>resultMap</code>）有如下结构（<a href="https://mybatis.org/mybatis-3/zh/sqlmap-xml.html" target="_blank" rel="noopener">Mybatis官网</a>【往下翻页到<code>resultMap</code>模块】）：</p>
+<ul>
+<li>constructor - 用于在实例化类时，注入结果到构造方法中<ul>
+<li><code>idArg</code> - ID 参数；标记出作为 ID 的结果可以帮助提高整体性能</li>
+<li><code>arg</code> - 将被注入到构造方法的一个普通结果</li>
+</ul>
+</li>
+<li><code>id</code> – 一个 ID 结果；标记出作为 ID 的结果可以帮助提高整体性能</li>
+<li><code>result</code> – 注入到字段或 JavaBean 属性的普通结果</li>
+<li>association – 一个复杂类型的关联；许多结果将包装成这种类型<ul>
+<li>嵌套结果映射 – 关联本身可以是一个 <code>resultMap</code> 元素，或者从别处引用一个</li>
+</ul>
+</li>
+<li>collection– 一个复杂类型的集合<ul>
+<li>嵌套结果映射 – 集合本身可以是一个 <code>resultMap</code> 元素，或者从别处引用一个</li>
+</ul>
+</li>
+<li>discriminator – 使用结果值来决定使用哪个 resultMap<ul>
+<li>case – 基于某些值的结果映射<ul>
+<li>嵌套结果映射 – <code>case</code> 本身可以是一个 <code>resultMap</code> 元素，因此可以具有相同的结构和元素，或者从别处引用一个</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <p>为了在解析源码的同时也能了解<code>resultMap</code>是如何使用的，我打算分步骤进行，一步一步去分析，由易到难。一下分的章节在<a href="https://mybatis.org/mybatis-3/zh/sqlmap-xml.html" target="_blank" rel="noopener">Mybatis官网</a>【往下翻页到<code>resultMap</code>模块】都能看到具体的使用方法。</p>
 <h2 id="2-1-简单的语句映射"><a href="#2-1-简单的语句映射" class="headerlink" title="2.1. 简单的语句映射"></a>2.1. 简单的语句映射</h2><p>简单的语句映射示例，没有显示指定<code>resultMap</code>，典型的两种：返回一个<code>Map</code>；返回一个<code>JavaBean</code>。具体如下所示：</p>
 <pre><code class="xml">  &lt;!--1. 最简单的映射所有的列到HashMap的键上--&gt;
@@ -369,7 +392,299 @@
 </li>
 </ul>
 <p>简单的语句映射看似简单，其实涉及到解析<code>&lt;select&gt;、&lt;insert&gt;、&lt;update&gt;、&lt;delete&gt;</code>节点，即<code>buildStatementFromContext(context.evalNodes(&quot;select|insert|update|delete&quot;))</code>这个会在后续章节讲到，这里只是抛砖引玉。</p>
-<h2 id="2-2-id-amp-result"><a href="#2-2-id-amp-result" class="headerlink" title="2.2. id &amp; result"></a>2.2. id &amp; result</h2><h2 id="2-3-constructor"><a href="#2-3-constructor" class="headerlink" title="2.3. constructor"></a>2.3. constructor</h2><h2 id="2-4-association"><a href="#2-4-association" class="headerlink" title="2.4. association"></a>2.4. association</h2><h2 id="2-5-collection"><a href="#2-5-collection" class="headerlink" title="2.5. collection"></a>2.5. collection</h2><h2 id="2-6-discriminator"><a href="#2-6-discriminator" class="headerlink" title="2.6. discriminator"></a>2.6. discriminator</h2><h2 id="2-7-autoMapping"><a href="#2-7-autoMapping" class="headerlink" title="2.7. autoMapping"></a>2.7. autoMapping</h2>
+<hr>
+<p>在解析<resultMap>节点的时候，我们首先要知道<resultMap>节点中可以定义什么，这里有几种方法可以知道，供大家选择：</p>
+<ol>
+<li><p>Mybatis官方；</p>
+</li>
+<li><p>我们在编写的时候，敲一个空格，就会有提示，如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191204230750-6Qjakj.png" srcset="undefined" alt=""></p>
+</li>
+<li><p>找到jar中的mybatis-3-mapper.dtd文件，如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191204231023-4nPGyK.png" srcset="undefined" alt=""></p>
+</li>
+</ol>
+<hr>
+<p>解析<resultMap>的入口方法，如下所示：（以下方法都在XMLMapperBuilder类中）</p>
+<pre><code class="java"> resultMapElements(context.evalNodes(&quot;/mapper/resultMap&quot;));</code></pre>
+<pre><code class="java">private void resultMapElements(List&lt;XNode&gt; list) throws Exception {
+    for (XNode resultMapNode : list) {
+      try {
+        resultMapElement(resultMapNode);
+      } catch (IncompleteElementException e) {
+        // ignore, it will be retried
+      }
+    }
+  }</code></pre>
+<pre><code class="java">  private void resultMapElements(List&lt;XNode&gt; list) throws Exception {
+    //list是&lt;resultMap&gt;节点的结合，有几对个&lt;resultMap&gt;&lt;/resultMap&gt; ，list的size()就等于几。
+    for (XNode resultMapNode : list) {
+      try {
+        //遍历一对一对解析
+        resultMapElement(resultMapNode);
+      } catch (IncompleteElementException e) {
+        // ignore, it will be retried
+      }
+    }
+  }</code></pre>
+<pre><code class="java">/**
+   *&lt;!ELEMENT resultMap (constructor?,id*,result*,association*,collection*, discriminator?)&gt;
+   * &lt;!ATTLIST resultMap
+   * id CDATA #REQUIRED
+   * type CDATA #REQUIRED
+   * extends CDATA #IMPLIED
+   * autoMapping (true|false) #IMPLIED
+   * &gt;
+   * @param resultMapNode   &lt;resultMap&gt;&lt;resultMap/&gt;
+   * @param additionalResultMappings  ResultMapping的集合
+   * @param enclosingType 封装类型
+   * @return
+   * @throws Exception
+   */
+  private ResultMap resultMapElement(XNode resultMapNode, List&lt;ResultMapping&gt; additionalResultMappings, Class&lt;?&gt; enclosingType) throws Exception {
+    ErrorContext.instance().activity(&quot;processing &quot; + resultMapNode.getValueBasedIdentifier());
+    //获取&lt;resultMap type &gt;中type string
+    //我不知道为什么这么写//todo
+    String type = resultMapNode.getStringAttribute(&quot;type&quot;,
+        resultMapNode.getStringAttribute(&quot;ofType&quot;,
+            resultMapNode.getStringAttribute(&quot;resultType&quot;,
+                resultMapNode.getStringAttribute(&quot;javaType&quot;))));
+    //获取resultMap映射的Class类型
+    Class&lt;?&gt; typeClass = resolveClass(type);
+    //如果resultMap的type为null，则返回继承封装类型
+    if (typeClass == null) {
+      // todo inheritEnclosingType
+      typeClass = inheritEnclosingType(resultMapNode, enclosingType);
+    }
+    Discriminator discriminator = null;
+    //该集合用于记录解析的结果
+    List&lt;ResultMapping&gt; resultMappings = new ArrayList&lt;&gt;();
+    resultMappings.addAll(additionalResultMappings);
+    //处理&lt;resultMap&gt;的子节点
+    List&lt;XNode&gt; resultChildren = resultMapNode.getChildren();
+    for (XNode resultChild : resultChildren) {
+      if (&quot;constructor&quot;.equals(resultChild.getName())) {
+        //处理&lt;constructor&gt;节点
+        processConstructorElement(resultChild, typeClass, resultMappings);
+      } else if (&quot;discriminator&quot;.equals(resultChild.getName())) {
+        //处理&lt;discriminator&gt;节点
+        discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
+      } else {
+        //处理&lt;id&gt;、&lt;result&gt;、&lt;association&gt;、&lt;collection&gt; 节点
+        List&lt;ResultFlag&gt; flags = new ArrayList&lt;&gt;();
+        //如果是&lt;id&gt;节点，则向flags集合中添加ResultFlag.ID
+        if (&quot;id&quot;.equals(resultChild.getName())) {
+          flags.add(ResultFlag.ID);
+        }
+        //创建ResultMapping对象，并添加到resultMappings集合
+        resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
+      }
+    }
+    //获取&lt;resultMap id  extends autoMapping&gt;中的 id、extends、autoMapping的属性值
+    //获取resultMap的id属性的属性值，如果为null，则返回默认值，默认值的生成规则是XNode.getValueBasedIdentifier()方法
+    //但是&quot;id CDATA #REQUIRED&quot;，即id属性是必须的，也就是用不上默认的生成规则，XNode.getValueBasedIdentifier()就在这闲的非常多余
+    String id = resultMapNode.getStringAttribute(&quot;id&quot;,
+            resultMapNode.getValueBasedIdentifier());
+    //获取&lt;resultMap&gt;节点的extends属性的值，该属性指定了&lt;resultMap&gt;节点的继承关系
+    String extend = resultMapNode.getStringAttribute(&quot;extends&quot;);
+    //获取&lt;resultMap&gt;节点的autoMapping属性的值
+    //如果该属性设置为true，则启动自动映射功能，即自动查找与列名相同的属性名，并调用setter方法。
+    //如果该属性设置为false，则需要在&lt;resultMapping&gt;节点内注明映射关系才能调用对应的setter方法。
+    Boolean autoMapping = resultMapNode.getBooleanAttribute(&quot;autoMapping&quot;);
+    //创建一个ResultMapResolver，并为当前的ResultMapResolver设置属性初始值，这些初始值会在ResultMapResolver的resolve()方法中派上用场
+    ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
+    try {
+      //创建ResultMap对象，并将其添加到Configuration.resultMap集合中，
+      return resultMapResolver.resolve();
+    } catch (IncompleteElementException  e) {
+      configuration.addIncompleteResultMap(resultMapResolver);
+      throw e;
+    }
+  }
+</code></pre>
+<p>我们要分析的就是以上的最后一个方法中涉及到的。</p>
+<h2 id="2-2-id-amp-result"><a href="#2-2-id-amp-result" class="headerlink" title="2.2. id &amp; result"></a>2.2. id &amp; result</h2><p>debug中使用的resultMap，如下所示：</p>
+<pre><code class="xml"> &lt;resultMap id=&quot;authorResult&quot; type=&quot;TbAuthor&quot;&gt;
+      &lt;id property=&quot;authorId&quot; column=&quot;author_id&quot;/&gt;
+      &lt;result property=&quot;authorUsername&quot; column=&quot;author_username&quot;/&gt;
+      &lt;result property=&quot;authorPassword&quot; column=&quot;author_password&quot;/&gt;
+      &lt;result property=&quot;authorEmail&quot; column=&quot;author_email&quot;/&gt;
+   &lt;/resultMap&gt;</code></pre>
+<p><id>节点和<result>节点中涉及到的属性有如下所示：（都是一些见名知意的属性）</p>
+<pre><code class="dtd">&lt;!ELEMENT id EMPTY&gt;
+&lt;!ATTLIST id
+property CDATA #IMPLIED
+javaType CDATA #IMPLIED
+column CDATA #IMPLIED
+jdbcType CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+&gt;
+
+&lt;!ELEMENT result EMPTY&gt;
+&lt;!ATTLIST result
+property CDATA #IMPLIED
+javaType CDATA #IMPLIED
+column CDATA #IMPLIED
+jdbcType CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+&gt;</code></pre>
+<table>
+<thead>
+<tr>
+<th align="left">属性</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>property</code></td>
+<td align="left">映射到列结果的字段或属性。如果用来匹配的 JavaBean 存在给定名字的属性，那么它将会被使用。否则 MyBatis 将会寻找给定名称的字段。 无论是哪一种情形，你都可以使用通常的点式分隔形式进行复杂属性导航。 比如，你可以这样映射一些简单的东西：“username”，或者映射到一些复杂的东西上：“address.street.number”。</td>
+</tr>
+<tr>
+<td align="left"><code>column</code></td>
+<td align="left">数据库中的列名，或者是列的别名。一般情况下，这和传递给 <code>resultSet.getString(columnName)</code> 方法的参数一样。</td>
+</tr>
+<tr>
+<td align="left"><code>javaType</code></td>
+<td align="left">一个 Java 类的完全限定名，或一个类型别名（关于内置的类型别名，可以参考上面的表格）。 如果你映射到一个 JavaBean，MyBatis 通常可以推断类型。然而，如果你映射到的是 HashMap，那么你应该明确地指定 javaType 来保证行为与期望的相一致。</td>
+</tr>
+<tr>
+<td align="left"><code>jdbcType</code></td>
+<td align="left">JDBC 类型，所支持的 JDBC 类型参见这个表格之后的“支持的 JDBC 类型”。 只需要在可能执行插入、更新和删除的且允许空值的列上指定 JDBC 类型。这是 JDBC 的要求而非 MyBatis 的要求。如果你直接面向 JDBC 编程，你需要对可能存在空值的列指定这个类型。</td>
+</tr>
+<tr>
+<td align="left"><code>typeHandler</code></td>
+<td align="left">我们在前面讨论过默认的类型处理器。使用这个属性，你可以覆盖默认的类型处理器。 这个属性值是一个类型处理器实现类的完全限定名，或者是类型别名。</td>
+</tr>
+</tbody></table>
+<h2 id="2-3-构造方法（constructor）"><a href="#2-3-构造方法（constructor）" class="headerlink" title="2.3.构造方法（constructor）"></a>2.3.构造方法（constructor）</h2><pre><code class="xml-dtd">&lt;!ELEMENT constructor (idArg*,arg*)&gt;
+
+&lt;!ELEMENT idArg EMPTY&gt;
+&lt;!ATTLIST idArg
+javaType CDATA #IMPLIED
+column CDATA #IMPLIED
+jdbcType CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+select CDATA #IMPLIED
+resultMap CDATA #IMPLIED
+name CDATA #IMPLIED
+columnPrefix CDATA #IMPLIED
+&gt;
+
+&lt;!ELEMENT arg EMPTY&gt;
+&lt;!ATTLIST arg
+javaType CDATA #IMPLIED
+column CDATA #IMPLIED
+jdbcType CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+select CDATA #IMPLIED
+resultMap CDATA #IMPLIED
+name CDATA #IMPLIED
+columnPrefix CDATA #IMPLIED
+&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th align="left">属性</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>column</code></td>
+<td align="left">数据库中的列名，或者是列的别名。一般情况下，这和传递给 <code>resultSet.getString(columnName)</code> 方法的参数一样。</td>
+</tr>
+<tr>
+<td align="left"><code>javaType</code></td>
+<td align="left">一个 Java 类的完全限定名，或一个类型别名（关于内置的类型别名，可以参考上面的表格）。 如果你映射到一个 JavaBean，MyBatis 通常可以推断类型。然而，如果你映射到的是 HashMap，那么你应该明确地指定 javaType 来保证行为与期望的相一致。</td>
+</tr>
+<tr>
+<td align="left"><code>jdbcType</code></td>
+<td align="left">JDBC 类型，所支持的 JDBC 类型参见这个表格之前的“支持的 JDBC 类型”。 只需要在可能执行插入、更新和删除的且允许空值的列上指定 JDBC 类型。这是 JDBC 的要求而非 MyBatis 的要求。如果你直接面向 JDBC 编程，你需要对可能存在空值的列指定这个类型。</td>
+</tr>
+<tr>
+<td align="left"><code>typeHandler</code></td>
+<td align="left">我们在前面讨论过默认的类型处理器。使用这个属性，你可以覆盖默认的类型处理器。 这个属性值是一个类型处理器实现类的完全限定名，或者是类型别名。</td>
+</tr>
+<tr>
+<td align="left"><code>select</code></td>
+<td align="left">用于加载复杂类型属性的映射语句的 ID，它会从 column 属性中指定的列检索数据，作为参数传递给此 select 语句。具体请参考关联元素。</td>
+</tr>
+<tr>
+<td align="left"><code>resultMap</code></td>
+<td align="left">结果映射的 ID，可以将嵌套的结果集映射到一个合适的对象树中。 它可以作为使用额外 select 语句的替代方案。它可以将多表连接操作的结果映射成一个单一的 <code>ResultSet</code>。这样的 <code>ResultSet</code> 将会将包含重复或部分数据重复的结果集。为了将结果集正确地映射到嵌套的对象树中，MyBatis 允许你 “串联”结果映射，以便解决嵌套结果集的问题。想了解更多内容，请参考下面的关联元素。</td>
+</tr>
+<tr>
+<td align="left"><code>name</code></td>
+<td align="left">构造方法形参的名字。从 3.4.3 版本开始，通过指定具体的参数名，你可以以任意顺序写入 arg 元素。参看上面的解释。</td>
+</tr>
+</tbody></table>
+<h2 id="2-4-关联（association）"><a href="#2-4-关联（association）" class="headerlink" title="2.4. 关联（association）"></a>2.4. 关联（association）</h2><p>association节点下涉及到的属性如下所示：</p>
+<pre><code class="dtd">&lt;!ELEMENT association (constructor?,id*,result*,association*,collection*, discriminator?)&gt;
+&lt;!ATTLIST association
+property CDATA #REQUIRED
+column CDATA #IMPLIED
+javaType CDATA #IMPLIED
+jdbcType CDATA #IMPLIED
+select CDATA #IMPLIED
+resultMap CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+notNullColumn CDATA #IMPLIED
+columnPrefix CDATA #IMPLIED
+resultSet CDATA #IMPLIED
+foreignColumn CDATA #IMPLIED
+autoMapping (true|false) #IMPLIED
+fetchType (lazy|eager) #IMPLIED
+&gt;</code></pre>
+<p>关联的不同之处是，你需要告诉 MyBatis 如何加载关联。MyBatis 有两种不同的方式加载关联：</p>
+<ul>
+<li>嵌套 Select 查询：通过执行另外一个 SQL 映射语句来加载期望的复杂类型。</li>
+<li>嵌套结果映射：使用嵌套的结果映射来处理连接结果的重复子集。</li>
+</ul>
+<h3 id="2-4-1-关联的嵌套-Select-查询"><a href="#2-4-1-关联的嵌套-Select-查询" class="headerlink" title="2.4.1. 关联的嵌套 Select 查询"></a>2.4.1. 关联的嵌套 Select 查询</h3><table>
+<thead>
+<tr>
+<th align="left">属性</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>column</code></td>
+<td align="left">数据库中的列名，或者是列的别名。一般情况下，这和传递给 <code>resultSet.getString(columnName)</code> 方法的参数一样。 注意：在使用复合主键的时候，你可以使用 <code>column=&quot;{prop1=col1,prop2=col2}&quot;</code> 这样的语法来指定多个传递给嵌套 Select 查询语句的列名。这会使得 <code>prop1</code> 和 <code>prop2</code> 作为参数对象，被设置为对应嵌套 Select 语句的参数。</td>
+</tr>
+<tr>
+<td align="left"><code>select</code></td>
+<td align="left">用于加载复杂类型属性的映射语句的 ID，它会从 column 属性指定的列中检索数据，作为参数传递给目标 select 语句。 具体请参考下面的例子。注意：在使用复合主键的时候，你可以使用 <code>column=&quot;{prop1=col1,prop2=col2}&quot;</code> 这样的语法来指定多个传递给嵌套 Select 查询语句的列名。这会使得 <code>prop1</code> 和 <code>prop2</code> 作为参数对象，被设置为对应嵌套 Select 语句的参数。</td>
+</tr>
+<tr>
+<td align="left"><code>fetchType</code></td>
+<td align="left">可选的。有效值为 <code>lazy</code> 和 <code>eager</code>。 指定属性后，将在映射中忽略全局配置参数 <code>lazyLoadingEnabled</code>，使用属性的值。</td>
+</tr>
+</tbody></table>
+<h3 id="2-4-1-关联的嵌套结果映射"><a href="#2-4-1-关联的嵌套结果映射" class="headerlink" title="2.4.1. 关联的嵌套结果映射"></a>2.4.1. 关联的嵌套结果映射</h3><table>
+<thead>
+<tr>
+<th align="left">属性</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>resultMap</code></td>
+<td align="left">结果映射的 ID，可以将此关联的嵌套结果集映射到一个合适的对象树中。 它可以作为使用额外 select 语句的替代方案。它可以将多表连接操作的结果映射成一个单一的 <code>ResultSet</code>。这样的 <code>ResultSet</code> 有部分数据是重复的。 为了将结果集正确地映射到嵌套的对象树中, MyBatis 允许你“串联”结果映射，以便解决嵌套结果集的问题。使用嵌套结果映射的一个例子在表格以后。</td>
+</tr>
+<tr>
+<td align="left"><code>columnPrefix</code></td>
+<td align="left">当连接多个表时，你可能会不得不使用列别名来避免在 <code>ResultSet</code> 中产生重复的列名。指定 columnPrefix 列名前缀允许你将带有这些前缀的列映射到一个外部的结果映射中。 详细说明请参考后面的例子。</td>
+</tr>
+<tr>
+<td align="left"><code>notNullColumn</code></td>
+<td align="left">默认情况下，在至少一个被映射到属性的列不为空时，子对象才会被创建。 你可以在这个属性上指定非空的列来改变默认行为，指定后，Mybatis 将只在这些列非空时才创建一个子对象。可以使用逗号分隔来指定多个列。默认值：未设置（unset）。</td>
+</tr>
+<tr>
+<td align="left"><code>autoMapping</code></td>
+<td align="left">如果设置这个属性，MyBatis 将会为本结果映射开启或者关闭自动映射。 这个属性会覆盖全局的属性 autoMappingBehavior。注意，本属性对外部的结果映射无效，所以不能搭配 <code>select</code> 或 <code>resultMap</code> 元素使用。默认值：未设置（unset）。</td>
+</tr>
+</tbody></table>
+<h2 id="2-5-collection"><a href="#2-5-collection" class="headerlink" title="2.5. collection"></a>2.5. collection</h2><h2 id="2-6-discriminator"><a href="#2-6-discriminator" class="headerlink" title="2.6. discriminator"></a>2.6. discriminator</h2><h2 id="2-7-autoMapping"><a href="#2-7-autoMapping" class="headerlink" title="2.7. autoMapping"></a>2.7. autoMapping</h2><pre><code>resource.equals(&quot;resources/mapper/TbBlogMapper.xml&quot;)</code></pre>
             <hr>
           </div>
           <br>

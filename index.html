@@ -205,7 +205,10 @@ public interface Cache {
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">binding模块</div>
+          <div class="index-text mb-1">binding模块在iBatis（Mybatis的前身）中，在查询一个Blog对象的时候会调用SqlSession.queryForObject(&quot;selectBlog&quot;,blogId)方法。其中，SqlSession.queryForObject()方法会执行指定的SQL语句进行查询并返回一个结果对象，第一个参数“selectBlog”指明了具体执行的SQL语句的id，该SQL语句定义在相应的映射配置文件中。如果我们错将“selectBlog”写成了“selectBlog1”，在初始化过程中，Mybatis是无法提示该错误的，而在实际调用queryForObject(&quot;selectBlog1&quot;,blogId)方法时才会抛出异常，开发人员才能知道该错误。
+Mybatis提供了binding模块用于解决上述问题，我们可以定义一个接口（Mapper接口），该示例中为TbBlogMapper接口，具体代码如下所指示。注意，这里的TbBlogMapper接口并不需要去继承任何其它接口，而且开发人员不需要提供该接口的实现。
+/**
+ * @author :</div>
         </div>
       </a>
 

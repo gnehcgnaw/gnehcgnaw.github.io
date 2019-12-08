@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3 字
+                    1.3k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      5 分钟
                   </span>&nbsp;
                 
 
@@ -161,7 +161,140 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="binding模块"><a href="#binding模块" class="headerlink" title="binding模块"></a>binding模块</h1>
+            <h1 id="binding模块"><a href="#binding模块" class="headerlink" title="binding模块"></a>binding模块</h1><p>在<code>iBatis</code>（<code>Mybatis</code>的前身）中，在查询一个<code>Blog</code>对象的时候会调用<code>SqlSession.queryForObject(&quot;selectBlog&quot;,blogId)</code>方法。其中，<code>SqlSession.queryForObject()</code>方法会执行指定的<code>SQL</code>语句进行查询并返回一个结果对象，第一个参数“selectBlog”指明了具体执行的<code>SQL</code>语句的<code>id</code>，该<code>SQL</code>语句定义在相应的映射配置文件中。如果我们错将“<code>selectBlog</code>”写成了“<code>selectBlog1</code>”，在初始化过程中，<code>Mybatis</code>是无法提示该错误的，而在实际调用<code>queryForObject(&quot;selectBlog1&quot;,blogId)</code>方法时才会抛出异常，开发人员才能知道该错误。</p>
+<p>Mybatis提供了binding模块用于解决上述问题，我们可以定义一个接口（Mapper接口），该示例中为TbBlogMapper接口，具体代码如下所指示。注意，这里的TbBlogMapper接口并不需要去继承任何其它接口，而且开发人员不需要提供该接口的实现。</p>
+<pre><code class="java">/**
+ * @author : &lt;a href=&quot;mailto:gnehcgnaw@gmail.com&quot;&gt;gnehcgnaw&lt;/a&gt;
+ * @since : 2019/12/3 15:56
+ */
+public interface TbBlogMapper {
+    List&lt;Map&gt; selectBlogDetails1(@Param(&quot;id&quot;) int id);
+
+    List&lt;TbBlog&gt; selectBlogDetails2(@Param(&quot;id&quot;) int id);
+
+    List&lt;TbBlog&gt; selectBlogDetails3(@Param(&quot;id&quot;) int id);
+
+    List&lt;Map&gt; selectBlogList();
+}
+</code></pre>
+<p>该Mapper接口中定义了SQL语句对应的方法，这些方法在Mybatis初始化过程中会与映射配置文件中定义的SQL语句相关联。如果存在无法关联的SQL语句，在Mybatis的初始化过程中节点就会抛出异常。我们可以通过调用Mapper接口中的方法执行相应的SQL语句，这样编译器就可以帮我们提早发现上述问题。查询Blog对象就变成了如下代码：</p>
+<pre><code class="java">BlogMapper blogMapper = sqlSessionFactory.openSession().getMapper(BlogMapper.class);
+    System.out.println(blogMapper.selectBlog(1));</code></pre>
+<p>在开始分析binding模块的实现之前，先了解一下该模块中核心组件之间的关系，如图所示：</p>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208153336-ujLRln.png" srcset="undefined" style="zoom:67%;" />
+
+<h1 id="1-MapperRegistry"><a href="#1-MapperRegistry" class="headerlink" title="1. MapperRegistry"></a>1. MapperRegistry</h1><p>MapperRegistry是Mapper接口及其对应的代理工厂的注册中心，MapperRegistry中字段的含义如下所示：</p>
+<pre><code class="java"> /**
+   * Configuration对象，Mybatis全局唯一的配置对象，其中包含了所有配置信息
+   */
+  private final Configuration config;
+  /**
+   * 记录了Mapper接口与定义{@link MapperProxyFactory}之间的关系
+   */
+  private final Map&lt;Class&lt;?&gt;, MapperProxyFactory&lt;?&gt;&gt; knownMappers = new HashMap&lt;&gt;();</code></pre>
+<h2 id="1-1-addMapper"><a href="#1-1-addMapper" class="headerlink" title="1.1. addMapper()"></a>1.1. addMapper()</h2><p>在<code>Mybatis</code>初始化过程中会读取映射配置文件以及<code>Mapper</code>接口中的注解信息（<code>XMLConfigBuilder.mapperElement()</code>，并调用<code>MapperRegistry.addMapper()</code>方法填充<code>MapperRegistry.knownMappers</code>集合），<code>knownMappers</code>集合的<code>key</code>是<code>Mapper</code>接口对应的<code>Class</code>对象，<code>value</code>为<code>MapperProxyFactory</code>对象，<code>MapperProxyFactory</code>可以为<code>Mapper</code>接口创建代理对象，<code>MapperProxyFactory</code>的实现马上就会分析到。<code>MapperRegistry.addMapper()</code>方法实现如下：</p>
+<pre><code> /**
+   * 添加Mapper
+   * {@link org.apache.ibatis.builder.xml.XMLConfigBuilder#mapperElement(XNode)} 中调用了addMapper(Class)  
+   * @param type
+   * @param &lt;T&gt;
+   */
+  public &lt;T&gt; void addMapper(Class&lt;T&gt; type) {
+    //判断是不是接口类型
+    if (type.isInterface()) {
+      //是接口类型
+      //判断Configuration.knownMappers中是否已经有了，即检测是否已经加载过该接口
+      if (hasMapper(type)) {
+        throw new BindingException(&quot;Type &quot; + type + &quot; is already known to the MapperRegistry.&quot;);
+      }
+      boolean loadCompleted = false;
+      try {
+        //将Mapper接口对应的Class对象和MapperProxyFactory对象添加到knownMappers集合
+        knownMappers.put(type, new MapperProxyFactory&lt;&gt;(type));
+        // It&#39;s important that the type is added before the parser is run
+        // otherwise the binding may automatically be attempted by the
+        // mapper parser. If the type is already known, it won&#39;t try.
+        MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        parser.parse();
+        loadCompleted = true;
+      } finally {
+        if (!loadCompleted) {
+          knownMappers.remove(type);
+        }
+      }
+    }
+  }
+</code></pre><p>在<code>Mybatis3.2.2</code>之后的版本，<code>addMapper()</code>多了两个方法重载，具体如下所示：</p>
+<pre><code>/**
+   * @since 3.2.2
+   */
+  public void addMappers(String packageName, Class&lt;?&gt; superType) {
+    ResolverUtil&lt;Class&lt;?&gt;&gt; resolverUtil = new ResolverUtil&lt;&gt;();
+    resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    Set&lt;Class&lt;? extends Class&lt;?&gt;&gt;&gt; mapperSet = resolverUtil.getClasses();
+    for (Class&lt;?&gt; mapperClass : mapperSet) {
+      addMapper(mapperClass);
+    }
+  }
+
+  /**
+   * @since 3.2.2
+   */
+  public void addMappers(String packageName) {
+    addMappers(packageName, Object.class);
+  }</code></pre><p>这样就可以加载那些，没有<code>mapper.xml</code>配置文件对应的Mapper接口，而这些接口凭借注解，也可以完成相应的操作，示例如下所示：</p>
+<ol>
+<li><p>定义<code>CommentMapper</code>接口</p>
+<pre><code class="java">package red.reksai.bingding.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.Map;
+
+/**
+ * @author : &lt;a href=&quot;mailto:gnehcgnaw@gmail.com&quot;&gt;gnehcgnaw&lt;/a&gt;
+ * @since : 2019/12/8 16:25
+ */
+@Mapper
+public interface CommentMapper {
+  @Select(&quot;select * from tb_comment where comment_id = #{id}&quot;)
+  public Map selectTbComment(@Param(&quot;id&quot;)int id);
+}
+</code></pre>
+</li>
+<li><p>修改<code>mybatis-config.xml</code>配置</p>
+<pre><code class="xml"> &lt;!--在&lt;mappers&gt;内，&lt;mapper&gt;下添加如下配置--&gt;
+ &lt;package name=&quot;red.reksai.bingding.mapper&quot;/&gt;</code></pre>
+</li>
+<li><p>调用<code>addMappers()</code>方法</p>
+<p>调用链：<code>XMLConfigBuider.mapperElement()</code>–&gt;<code>MapperRegistry.addMappers()</code>。</p>
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164710-dusvB3.png" srcset="undefined" style="zoom:67%;" />
+
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164812-A4jrm3.png" srcset="undefined" style="zoom:67%;" />
+
+</li>
+</ol>
+<h2 id="1-2-getMapper"><a href="#1-2-getMapper" class="headerlink" title="1.2. getMapper()"></a>1.2. getMapper()</h2><p>在需要执行某<code>SQL</code>语句时，会先调用<code>MapperRegistry.getMapper()</code>方法获取实现了<code>Mapper</code>接口的代理对象，例如：<code>sqlSessionFactory.openSession().getMapper(CommentMapper.class)</code>方法得到的实际上是<code>Mybatis</code>通过<code>jdk</code>动态代理为<code>CommentMapper</code>接口生成的代理对象，如下图所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208165342-Gn3EQt.png" srcset="undefined" alt=""></p>
+<p><code>MapperRegistry.getMapper()</code>方法的代码如下所示：</p>
+<pre><code class="java">  @SuppressWarnings(&quot;unchecked&quot;)
+  public &lt;T&gt; T getMapper(Class&lt;T&gt; type, SqlSession sqlSession) {
+    //查找指定的type对应的MapperProxyFactory对象
+    final MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);
+    //如果mapperProxyFactory为空，则抛出异常
+    if (mapperProxyFactory == null) {
+      throw new BindingException(&quot;Type &quot; + type + &quot; is not known to the MapperRegistry.&quot;);
+    }
+    try {
+      //如果mapperProxyFactory不为空，则生成Mapper接口的代理对象并返回
+      return mapperProxyFactory.newInstance(sqlSession);
+    } catch (Exception e) {
+      throw new BindingException(&quot;Error getting mapper instance. Cause: &quot; + e, e);
+    }
+  }</code></pre>
+<h1 id="2-MapperProxyFactory"><a href="#2-MapperProxyFactory" class="headerlink" title="2. MapperProxyFactory"></a>2. MapperProxyFactory</h1>
             <hr>
           </div>
           <br>

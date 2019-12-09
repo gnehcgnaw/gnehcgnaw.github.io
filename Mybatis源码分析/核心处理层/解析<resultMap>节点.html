@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    4.3k 字
+                    5.3k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      19 分钟
+                      23 分钟
                   </span>&nbsp;
                 
 
@@ -600,10 +600,10 @@
 
 &lt;/mapper&gt;
 </code></pre>
-<p>在XMLMapperBuilder中通过resultMapElements()方法解析映射配置文件中的全部<resultMap>节点，该方法会循环调用resultMapElement()方法处理每一个<resultMap>节点，下面直接分析XMLMapperBuilder.resultMapElement()方法的具体实现，结合上面的例子。</p>
-<p>因为我项目中定义了多个Mapper.xml，而我只需要一个，所以我们在debug的时候要跳过其他的mapper.xml的解析，直接从TbBlogMapper.xml开始，具体如下所示：</p>
+<p>在<code>XMLMapperBuilder</code>中通过<code>resultMapElements()</code>方法解析映射配置文件中的全部<code>&lt;resultMap&gt;</code>节点，该方法会循环调用resultMapElement()方法处理每一个<code>&lt;resultMap&gt;</code>节点，下面直接分析<code>XMLMapperBuilder.resultMapElement()</code>方法的具体实现，结合上面的例子。</p>
+<p>因为我项目中定义了多个<code>Mapper.xml</code>，而我只需要一个，所以我们在<code>debug</code>的时候要跳过其他的<code>mapper.xml</code>的解析，直接从<code>TbBlogMapper.xml</code>开始，具体如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-09-ePpBBL.png" srcset="undefined" alt=""></p>
-<p>然后接着进入到resultMapElement()方法，开始进行代码的解析：</p>
+<p>然后接着进入到<code>resultMapElement()</code>方法，开始进行代码的解析：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-09-yZ9HIY.png" srcset="undefined" alt=""></p>
 <pre><code class="xml">  &lt;resultMap id=&quot;selectBlogDetailsResultMap2&quot; type=&quot;red.reksai.resultmap.entity.TbBlog&quot;&gt;
     &lt;id property=&quot;blogId&quot; column=&quot;blog_id&quot; /&gt;
@@ -615,9 +615,7 @@
     &lt;/collection&gt;
   &lt;/resultMap&gt;</code></pre>
 <p>根据debug的情况，分析步骤如下所示：</p>
-<ol>
-<li><p>解析<code>&lt;resultMap&gt;</code>中的<code>type</code>属性：</p>
-<pre><code class="xml">&lt;resultMap id=&quot;selectBlogDetailsResultMap2&quot; type=&quot;red.reksai.resultmap.entity.TbBlog&quot;&gt;</code></pre>
+<h2 id="2-1-解析-lt-resultMap-gt-中的type属性："><a href="#2-1-解析-lt-resultMap-gt-中的type属性：" class="headerlink" title="2.1. 解析&lt;resultMap&gt;中的type属性："></a>2.1. 解析<code>&lt;resultMap&gt;</code>中的<code>type</code>属性：</h2><pre><code class="xml">&lt;resultMap id=&quot;selectBlogDetailsResultMap2&quot; type=&quot;red.reksai.resultmap.entity.TbBlog&quot;&gt;</code></pre>
 <p>但是下面代码让我很是懵逼，代码如下是所示：</p>
 <pre><code class="java"> String type = resultMapNode.getStringAttribute(&quot;type&quot;,
         resultMapNode.getStringAttribute(&quot;ofType&quot;,
@@ -625,18 +623,72 @@
                 resultMapNode.getStringAttribute(&quot;javaType&quot;))));</code></pre>
 <p><strong>疑问一：</strong></p>
 <p>根据<code>debug</code>的跟踪和看到上述代码的第一印象，就是解析<code>&lt;resultMap&gt;</code>中的<code>type</code>属性并返回结果，但是我不知道它为什么会按照上述步骤去写代码，因为<code>&lt;resultMap&gt;</code>节点的属性只有：<code>id</code>、<code>type</code>、<code>autoMapping</code>、<code>extends</code>，而没有<code>ofType</code>、<code>resultType</code>、<code>javaType</code>，而且当前返回值是<code>String type = red.reksai.resultmap.entity.TbBlog</code>，这里给我留下了疑问，希望跟踪后续代码，可以解决我此时的疑问。</p>
-</li>
-<li><p>返回其type的Class对象</p>
-<p>代码如下所示：</p>
+<h2 id="2-2-返回其type的Class对象"><a href="#2-2-返回其type的Class对象" class="headerlink" title="2.2. 返回其type的Class对象"></a>2.2. 返回其<code>type</code>的<code>Class</code>对象</h2><p>代码如下所示：</p>
 <pre><code class="java">    //获取resultMap映射的Class类型
     Class&lt;?&gt; typeClass = resolveClass(type);
     //这步骤的意义何在？
     if (typeClass == null) {
       typeClass = inheritEnclosingType(resultMapNode, enclosingType);
     }</code></pre>
-</li>
-</ol>
-
+<p><strong>疑问二：</strong></p>
+<p>因为<code>&lt;resultMap</code>&gt;中的<code>type</code>属性是<code>require</code>，所以在获取<code>typeClass</code>，要么出现<code>BuilderException</code>，要么一定返回正确的<code>Class</code>对象，那么为什么还要判断<code>typeClass</code>是否为<code>null</code>呢？希望跟踪后续代码，可以解决我此时的疑问。</p>
+<h2 id="2-3-创建Discriminator对象和resultMappings集合"><a href="#2-3-创建Discriminator对象和resultMappings集合" class="headerlink" title="2.3. 创建Discriminator对象和resultMappings集合"></a>2.3. 创建<code>Discriminator</code>对象和<code>resultMappings</code>集合</h2><p><code>Discriminator</code>对象用于存放<code>&lt;discriminator&gt;</code>标签解析出来的属性值；创建<code>resultMappings</code>集合用于存放<code>ResultMapping</code>对象。</p>
+<pre><code class="java">   //初始化一个Discriminator，用于存放把&lt;discriminator&gt;节点解析的属性
+    Discriminator discriminator = null;
+    //初始化一个集合，该集合用于记录解析的结果
+    List&lt;ResultMapping&gt; resultMappings = new ArrayList&lt;&gt;();
+    resultMappings.addAll(additionalResultMappings);</code></pre>
+<p>其实我看到这里的时候，我越来越确信后面的代码可以帮我解决上面出现的两个疑问，如果按照我的思路走下去，有好多的代码都是没用的，但是我相信存在即合理，所以我怀疑在后面一定要方法调用了当前的<code>resultMapElement()</code>方法。</p>
+<h2 id="2-4-处理-lt-resultMap-gt-下的子节点"><a href="#2-4-处理-lt-resultMap-gt-下的子节点" class="headerlink" title="2.4. 处理&lt;resultMap&gt;下的子节点"></a>2.4. 处理<code>&lt;resultMap&gt;</code>下的子节点</h2><p>代码如下所示：</p>
+<pre><code class="java">    //处理&lt;resultMap&gt;的子节点
+    List&lt;XNode&gt; resultChildren = resultMapNode.getChildren();
+    for (XNode resultChild : resultChildren) {
+      if (&quot;constructor&quot;.equals(resultChild.getName())) {
+        //处理&lt;constructor&gt;节点
+        processConstructorElement(resultChild, typeClass, resultMappings);
+      } else if (&quot;discriminator&quot;.equals(resultChild.getName())) {
+        //处理&lt;discriminator&gt;节点
+        discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
+      } else {
+        //处理&lt;id&gt;、&lt;result&gt;、&lt;association&gt;、&lt;collection&gt; 节点
+        List&lt;ResultFlag&gt; flags = new ArrayList&lt;&gt;();
+        //如果是&lt;id&gt;节点，则向flags集合中添加ResultFlag.ID
+        if (&quot;id&quot;.equals(resultChild.getName())) {
+          flags.add(ResultFlag.ID);
+        }
+        //创建ResultMapping对象，并添加到resultMappings集合
+        resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
+      }
+    }</code></pre>
+<p>上面的代码其实是在迭代处理<code>&lt;resultMap&gt;</code>下的所有子节点，总结起来其实就是三部分的内容：</p>
+<ul>
+<li>处理<code>&lt;constructor&gt;</code>节点，核心方法是：<code>processConstructorElement()</code>【接下来会去分析】</li>
+<li>处理<code>&lt;discriminator&gt;</code>节点，核心方法是：<code>processDiscriminatorElement()</code>【接下来会去分析】</li>
+<li>处理<code>&lt;id&gt;</code>、<code>&lt;result&gt;</code>、<code>&lt;association&gt;</code>、<code>&lt;collection&gt;</code> 节点，<code>buildResultMappingFromContext()</code>。【接下来会去分析】</li>
+</ul>
+<h2 id="2-5-获取-lt-resulMap-gt-的id、extends、autoMapping的属性的值"><a href="#2-5-获取-lt-resulMap-gt-的id、extends、autoMapping的属性的值" class="headerlink" title="2.5. 获取&lt;resulMap&gt;的id、extends、autoMapping的属性的值"></a>2.5. 获取<code>&lt;resulMap&gt;</code>的<code>id</code>、<code>extends</code>、<code>autoMapping</code>的属性的值</h2><pre><code class="java">    //获取&lt;resultMap id  extends autoMapping&gt;中的 id、extends、autoMapping的属性值
+    //获取resultMap的id属性的属性值，如果为null，则返回默认值，默认值的生成规则是XNode.getValueBasedIdentifier()方法
+    //但是&quot;id CDATA #REQUIRED&quot;，即id属性是必须的，也就是用不上默认的生成规则，XNode.getValueBasedIdentifier()就在这显得的非常多余
+    // todo
+    String id = resultMapNode.getStringAttribute(&quot;id&quot;,
+            resultMapNode.getValueBasedIdentifier());
+    //获取&lt;resultMap&gt;节点的extends属性的值，该属性指定了&lt;resultMap&gt;节点的继承关系
+    String extend = resultMapNode.getStringAttribute(&quot;extends&quot;);
+    //获取&lt;resultMap&gt;节点的autoMapping属性的值
+    //如果该属性设置为true，则启动自动映射功能，即自动查找与列名相同的属性名，并调用setter方法。
+    //如果该属性设置为false，则需要在&lt;resultMapping&gt;节点内注明映射关系才能调用对应的setter方法。
+    Boolean autoMapping = resultMapNode.getBooleanAttribute(&quot;autoMapping&quot;);</code></pre>
+<p>其中有一个<code>getValueBasedIdentifier()</code>方法需要我们注意【接下来会去分析】</p>
+<h2 id="2-6-调用ResultMapResolver-resolve-完成最后操作"><a href="#2-6-调用ResultMapResolver-resolve-完成最后操作" class="headerlink" title="2.6. 调用ResultMapResolver.resolve()完成最后操作"></a>2.6. 调用<code>ResultMapResolver.resolve()</code>完成最后操作</h2><p>创建<code>ResultMapResolver</code>对象，然后调用其<code>resolve()</code>方法，去创建一个<code>ResultMap</code>对象，并将其添加到<code>Configuration.resultMap</code>集合中。</p>
+<pre><code> ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
+    try {
+      //创建ResultMap对象，并将其添加到Configuration.resultMap集合中，
+      return resultMapResolver.resolve();
+    } catch (IncompleteElementException  e) {
+      configuration.addIncompleteResultMap(resultMapResolver);
+      throw e;
+    }</code></pre><p>到此为止<code>resultMapElement()</code>中的代码就解读完成了，但是其中还有两个疑问和其他的一些主要方法需要去解决，带着我的疑问下去先去把上面涉及到的核心方法解析掉，也许疑问就迎刃而解了。</p>
+<h1 id="3-XMLMapperBuilder中核心方法分析"><a href="#3-XMLMapperBuilder中核心方法分析" class="headerlink" title="3. XMLMapperBuilder中核心方法分析"></a>3. XMLMapperBuilder中核心方法分析</h1><h2 id="3-1-processConstructorElement"><a href="#3-1-processConstructorElement" class="headerlink" title="3.1. processConstructorElement()"></a>3.1. <code>processConstructorElement()</code></h2><h2 id="3-2-processDiscriminatorElement"><a href="#3-2-processDiscriminatorElement" class="headerlink" title="3.2. processDiscriminatorElement()"></a>3.2. <code>processDiscriminatorElement()</code></h2><h2 id="3-3-buildResultMappingFromContext"><a href="#3-3-buildResultMappingFromContext" class="headerlink" title="3.3. buildResultMappingFromContext()"></a>3.3. <code>buildResultMappingFromContext()</code></h2><h2 id="3-4-inheritEnclosingType"><a href="#3-4-inheritEnclosingType" class="headerlink" title="3.4. inheritEnclosingType()"></a>3.4. <code>inheritEnclosingType()</code></h2>
             <hr>
           </div>
           <br>

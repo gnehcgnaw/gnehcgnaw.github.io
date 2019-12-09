@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.1k 字
+                    3.2k 字
                   </span>&nbsp;
                 
 
@@ -563,7 +563,17 @@ public interface CommentMapper {
     System.out.println(mapper.selectTbComment(1));</code></pre>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209014817-pEQn5X.png" srcset="undefined" alt=""></p>
 <p>根据执行的时序图，我们接下来就应该去分析<code>MapperMethod</code>类了。</p>
-<h1 id="4-MapperMethod"><a href="#4-MapperMethod" class="headerlink" title="4. MapperMethod"></a>4. MapperMethod</h1>
+<h1 id="4-MapperMethod"><a href="#4-MapperMethod" class="headerlink" title="4. MapperMethod"></a>4. MapperMethod</h1><p>MapperMethod中封装了Mapper接口中对应方法的信息，以及对应SQL语句的信息，MapperMethod可以看做是Mapper接口以及映射配置文件中定义的SQL语句的桥梁。MepperMethod中各个字段的信息如下：</p>
+<pre><code class="java">  /**
+   * 记录了SQL语句的名称和类型
+   */
+  private final SqlCommand command;
+  /**
+   * Mapper接口中对应方法的相关新
+   */
+  private final MethodSignature method;</code></pre>
+<p>SqlCommand是MapperMethod中定义的静态内部类，它使用了name字段记录SQL语句的名称，使用type字段（SqlCommandType类型）记录了SQL语句的类型。SqlCommandType是枚举类型，有效值UNKNOWN、INSERT、UPDATE、DELETE、SELECT、PLUSH。</p>
+
             <hr>
           </div>
           <br>
@@ -653,9 +663,9 @@ public interface CommentMapper {
 
   <footer class="mt-5">
   <div class="text-center py-3">
-    <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
-    <i class="iconfont icon-love"></i>
-    <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    <b>Contact me at :</b>
+    <a href="https://github.com/gnehcgnaw" target="_blank" rel="nofollow noopener"><i class="fab fa-github"></i></a>
+    <a href="mailto:gnehcgnaw@gmail.com" target="_blank" rel="nofollow noopener"><i class="fas fa-envelope-square"></i></a>
     <br>
 
     

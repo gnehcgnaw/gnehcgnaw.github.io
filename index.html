@@ -515,6 +515,52 @@ public interface Transaction {
     
     
       <div class="col-12 col-md-4 m-auto">
+        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%BA%8C).html" target="_self">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129215610-z8yGCb.jpeg" srcset="undefined" alt="Mybatis初始化(二)——汇总" class="img-fluid rounded z-depth-3 index-thumbnails">
+        </a>
+      </div>
+    
+    <div class="col-12 col-md-8 m-auto">
+      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%BA%8C).html">
+        <p class="h4 index-header">Mybatis初始化(二)——汇总</p>
+        
+        
+          
+        
+        <div class="index-excerpt" >
+          <div class="index-text mb-1">Mybatis初始化(二)——汇总1. XMLMapperBuilder通过对XMLConfigBuilder.mapperElement()方法的介绍我们知道，XMLMapperBuiler负责解析映射配置文件，它继承了BaseBuilder抽象类，也是具体建造者的角色。
+1.1. 解析&lt;cache&gt;节点Mybatis拥有非常强大的耳机缓存功能，该功能可以非常方便地进行配置，Mybatis默认情况下是没有开启二级缓存的，如果要为某命名空间开启二级缓存功能，则需要在相应映射配置文件中添加节点，还可以通过配置文件节点的相应属性，为二级缓存配置相应的特性（本质上就是添加相应的装饰器）。
+XMLMapperBuiler.cacheElement()方法主要负责解析节点，具体实现如下：
+</div>
+        </div>
+      </a>
+
+      <div>
+        
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-28&nbsp;&nbsp;
+        
+        
+          <i class="iconfont icon-inbox"></i>
+          
+            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+            <a href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>&nbsp;
+          &nbsp;
+        
+        
+          <i class="iconfont icon-tag"></i>
+          
+            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 mx-auto">
+    
+    
+      <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%B8%80).html" target="_self">
           <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129232712-O9OnnZ.png" srcset="undefined" alt="Mybatis初始化(一)" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
@@ -582,52 +628,6 @@ ParameterMappin</div>
         <div class="index-excerpt" >
           <div class="index-text mb-1">解析&lt;resultMap&gt;节点1. 简介select语句查询得到的结果集是一张二维表，水平方向上看是一个个字段，垂直方向上看是一条条数据。而Java是面向对象的程序设计语言，对象是根据类定义创建的，类之间的引用关系是可以认为是嵌套结构的。在JDBC编程中，为了将结果集中的数据映射成对象，我们需要自己写代码从结果集中获取数据，然后封装成对应的对象并设置对象之间的关系，而这些都是大量的重复性的代码。为了减少这些重复的代码，Mybatis使用&lt;resultMap&gt;节点定义了结果集与结果对象（JavaBean对象）之间的映射规则，&lt;resultMap&gt;节点可以满足绝大部分的映射需求，从未减少开发人员的重复性劳动，提高开发效率。
 在开始介绍&lt;resultMap&gt;节点的解析过程之前，先来介绍该过程中使用的数据结构。每个ResultMapping对象记录了结果集中的一列与JavaBean中一个属性之间的映射关系。在后面的分析过程中我们可以看到，&lt;resultMap&gt;节点下除了&lt;discriminator&gt;子节点的其他子节点，都被</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-28&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%BA%8C).html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129215610-z8yGCb.jpeg" srcset="undefined" alt="Mybatis初始化(二)——汇总" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mybatis%E5%88%9D%E5%A7%8B%E5%8C%96(%E4%BA%8C).html">
-        <p class="h4 index-header">Mybatis初始化(二)——汇总</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">Mybatis初始化(二)——汇总1. XMLMapperBuilder通过对XMLConfigBuilder.mapperElement()方法的介绍我们知道，XMLMapperBuiler负责解析映射配置文件，它继承了BaseBuilder抽象类，也是具体建造者的角色。
-1.1. 解析&lt;cache&gt;节点Mybatis拥有非常强大的耳机缓存功能，该功能可以非常方便地进行配置，Mybatis默认情况下是没有开启二级缓存的，如果要为某命名空间开启二级缓存功能，则需要在相应映射配置文件中添加节点，还可以通过配置文件节点的相应属性，为二级缓存配置相应的特性（本质上就是添加相应的装饰器）。
-XMLMapperBuiler.cacheElement()方法主要负责解析节点，具体实现如下：
-</div>
         </div>
       </a>
 

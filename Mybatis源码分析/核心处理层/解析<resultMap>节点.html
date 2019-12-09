@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    5.3k 字
+                    6.7k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      23 分钟
+                      30 分钟
                   </span>&nbsp;
                 
 
@@ -353,7 +353,7 @@
 <li><p>其实所谓的“隐式的<code>&lt;resultMap&gt;</code>”就是说<code>&lt;select&gt;</code>节点中没有定义<code>resultMap</code>属性，那我就猜测是不是在解析<code>&lt;select&gt;</code>节点的时候，生成了<code>ResultMap</code>对象，并将对象存入到<code>Configuration</code>的<code>resultMaps</code>集合中的呢？</p>
 </li>
 <li><p>通过跟踪<code>buildStatementFromContext(context.evalNodes(&quot;select|insert|update|delete&quot;))</code>代码，我发现<code>MapperStatement.builder().resultMaps()</code>方法添加了<code>resultMap</code>，而这个方法的参数是通过<code>MapperBuilderAssistant.getStatementResultMaps()</code>方法获取<code>resultMaps</code>，代码如下所示：</p>
-<pre><code>  private List&lt;ResultMap&gt; getStatementResultMaps(
+<pre><code class="java">  private List&lt;ResultMap&gt; getStatementResultMaps(
       String resultMap,
       Class&lt;?&gt; resultType,
       String statementId) {
@@ -379,7 +379,8 @@
       resultMaps.add(inlineResultMap);
     }
     return resultMaps;
-  }</code></pre></li>
+  }</code></pre>
+</li>
 <li><p>在上述的 <code>else if</code>代码中发现，如果从<code>Configuration</code>中获取的<code>resultMap</code>为<code>null</code>，并且<code>resultType</code>参数不为空，那么会生成一个内部的<code>inlineResultMap</code>，而这个<code>map</code>最终被添加到了<code>MapperStatement.resultMaps</code>属性中，并没有添加到<code>Configuration</code>的<code>resultMaps</code>集合中。</p>
 </li>
 </ul>
@@ -606,6 +607,10 @@
 <p>然后接着进入到<code>resultMapElement()</code>方法，开始进行代码的解析：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-09-yZ9HIY.png" srcset="undefined" alt=""></p>
 <pre><code class="xml">  &lt;resultMap id=&quot;selectBlogDetailsResultMap2&quot; type=&quot;red.reksai.resultmap.entity.TbBlog&quot;&gt;
+    &lt;!--定义映射中使用的构造方法--&gt;
+    &lt;constructor&gt;
+      &lt;idArg column=&quot;blog_id&quot; javaType=&quot;int&quot;&gt;&lt;/idArg&gt;
+    &lt;/constructor&gt;
     &lt;id property=&quot;blogId&quot; column=&quot;blog_id&quot; /&gt;
     &lt;result property=&quot;blogTitle&quot; column=&quot;blog_title&quot;/&gt;
     &lt;!--关联的嵌套结果映射resultMap=&quot;red.reksai.resultmap.mapper.TbAuthorMapper.authorResultMap&quot;--&gt;
@@ -680,15 +685,163 @@
     Boolean autoMapping = resultMapNode.getBooleanAttribute(&quot;autoMapping&quot;);</code></pre>
 <p>其中有一个<code>getValueBasedIdentifier()</code>方法需要我们注意【接下来会去分析】</p>
 <h2 id="2-6-调用ResultMapResolver-resolve-完成最后操作"><a href="#2-6-调用ResultMapResolver-resolve-完成最后操作" class="headerlink" title="2.6. 调用ResultMapResolver.resolve()完成最后操作"></a>2.6. 调用<code>ResultMapResolver.resolve()</code>完成最后操作</h2><p>创建<code>ResultMapResolver</code>对象，然后调用其<code>resolve()</code>方法，去创建一个<code>ResultMap</code>对象，并将其添加到<code>Configuration.resultMap</code>集合中。</p>
-<pre><code> ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
+<pre><code class="java"> ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
     try {
       //创建ResultMap对象，并将其添加到Configuration.resultMap集合中，
       return resultMapResolver.resolve();
     } catch (IncompleteElementException  e) {
       configuration.addIncompleteResultMap(resultMapResolver);
       throw e;
-    }</code></pre><p>到此为止<code>resultMapElement()</code>中的代码就解读完成了，但是其中还有两个疑问和其他的一些主要方法需要去解决，带着我的疑问下去先去把上面涉及到的核心方法解析掉，也许疑问就迎刃而解了。</p>
-<h1 id="3-XMLMapperBuilder中核心方法分析"><a href="#3-XMLMapperBuilder中核心方法分析" class="headerlink" title="3. XMLMapperBuilder中核心方法分析"></a>3. XMLMapperBuilder中核心方法分析</h1><h2 id="3-1-processConstructorElement"><a href="#3-1-processConstructorElement" class="headerlink" title="3.1. processConstructorElement()"></a>3.1. <code>processConstructorElement()</code></h2><h2 id="3-2-processDiscriminatorElement"><a href="#3-2-processDiscriminatorElement" class="headerlink" title="3.2. processDiscriminatorElement()"></a>3.2. <code>processDiscriminatorElement()</code></h2><h2 id="3-3-buildResultMappingFromContext"><a href="#3-3-buildResultMappingFromContext" class="headerlink" title="3.3. buildResultMappingFromContext()"></a>3.3. <code>buildResultMappingFromContext()</code></h2><h2 id="3-4-inheritEnclosingType"><a href="#3-4-inheritEnclosingType" class="headerlink" title="3.4. inheritEnclosingType()"></a>3.4. <code>inheritEnclosingType()</code></h2>
+    }</code></pre>
+<p>到此为止<code>resultMapElement()</code>中的代码就解读完成了，但是其中还有两个疑问和其他的一些主要方法需要去解决，带着我的疑问下去先去把上面涉及到的核心方法解析掉，也许疑问就迎刃而解了。</p>
+<h1 id="3-XMLMapperBuilder中核心方法分析"><a href="#3-XMLMapperBuilder中核心方法分析" class="headerlink" title="3. XMLMapperBuilder中核心方法分析"></a>3. <code>XMLMapperBuilder</code>中核心方法分析</h1><h2 id="3-1-processConstructorElement"><a href="#3-1-processConstructorElement" class="headerlink" title="3.1. processConstructorElement()"></a>3.1. <code>processConstructorElement()</code></h2><p><code>processConstructorElement()</code>其实就是解析一下代码段：</p>
+<pre><code class="java">    &lt;!--定义映射中使用的构造方法--&gt;
+    &lt;constructor&gt;
+      &lt;idArg column=&quot;blog_id&quot; javaType=&quot;int&quot;&gt;&lt;/idArg&gt;
+    &lt;/constructor&gt;</code></pre>
+<pre><code class="java">  private void processConstructorElement(XNode resultChild, Class&lt;?&gt; resultType, List&lt;ResultMapping&gt; resultMappings) throws Exception {
+    //获取&lt;constructor&gt;下的子节点
+    List&lt;XNode&gt; argChildren = resultChild.getChildren();
+    for (XNode argChild : argChildren) {
+      List&lt;ResultFlag&gt; flags = new ArrayList&lt;&gt;();
+      //添加CONSTRUCTOR标志
+      flags.add(ResultFlag.CONSTRUCTOR);
+      //如果包含idArg，添加ID标志
+      if (&quot;idArg&quot;.equals(argChild.getName())) {
+        flags.add(ResultFlag.ID);
+      }
+      //创建ResultMapping对象，并添加到resultMappings集合中
+      resultMappings.add(buildResultMappingFromContext(argChild, resultType, flags));
+    }
+  }</code></pre>
+<p>以上代码涉及到ResultFlag类，此类会在分析<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E8%A7%A3%E6%9E%90%3CresultMap%3E%E8%8A%82%E7%82%B9.html#3-3-buildResultMappingFromContext" target="_blank" rel="noopener">buildResultMappingFromContext(argChild, resultType, flags)</a>的时候去分析具体的作用。</p>
+<h2 id="3-2-processDiscriminatorElement"><a href="#3-2-processDiscriminatorElement" class="headerlink" title="3.2. processDiscriminatorElement()"></a>3.2. <code>processDiscriminatorElement()</code></h2><pre><code class="dtd">&lt;!ELEMENT discriminator (case+)&gt;
+&lt;!ATTLIST discriminator
+column CDATA #IMPLIED
+javaType CDATA #REQUIRED
+jdbcType CDATA #IMPLIED
+typeHandler CDATA #IMPLIED
+&gt;
+
+&lt;!ELEMENT case (constructor?,id*,result*,association*,collection*, discriminator?)&gt;
+&lt;!ATTLIST case
+value CDATA #REQUIRED
+resultMap CDATA #IMPLIED
+resultType CDATA #IMPLIED
+&gt;</code></pre>
+<p>有上面的代码可知，<discriminator>下<case>还是允许定义resultMap的，所以会去调用processNestedResultMappings()方法【接下来会去分析】。</p>
+<pre><code class="java">  private Discriminator processDiscriminatorElement(XNode context, Class&lt;?&gt; resultType, List&lt;ResultMapping&gt; resultMappings) throws Exception {
+    String column = context.getStringAttribute(&quot;column&quot;);
+    String javaType = context.getStringAttribute(&quot;javaType&quot;);
+    String jdbcType = context.getStringAttribute(&quot;jdbcType&quot;);
+    String typeHandler = context.getStringAttribute(&quot;typeHandler&quot;);
+    Class&lt;?&gt; javaTypeClass = resolveClass(javaType);
+    Class&lt;? extends TypeHandler&lt;?&gt;&gt; typeHandlerClass = resolveClass(typeHandler);
+    JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
+    Map&lt;String, String&gt; discriminatorMap = new HashMap&lt;&gt;();
+    for (XNode caseChild : context.getChildren()) {
+      String value = caseChild.getStringAttribute(&quot;value&quot;);
+      //case节点内是可以定义resultMap的，所以还要去迭代解析直到所有的嵌套的resultMap解析完成为止
+      String resultMap = caseChild.getStringAttribute(&quot;resultMap&quot;, processNestedResultMappings(caseChild, resultMappings, resultType));
+      discriminatorMap.put(value, resultMap);
+    }
+    return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
+  }</code></pre>
+<h2 id="3-3-buildResultMappingFromContext"><a href="#3-3-buildResultMappingFromContext" class="headerlink" title="3.3. buildResultMappingFromContext()"></a>3.3. <code>buildResultMappingFromContext()</code></h2><p>这个方法是处理ResultMapping对象的，但是有些ResultMapping对象中还有resultMap属性，比如：<code>association</code>、<code>collection</code>、<code>case</code>，但是这些节点又没有：<code>type</code>、<code>ofType</code>、<code>resultType</code>、<code>javaType</code>属性，所以这类的resultMap被称为是匿名嵌套，那么久出现了两个问题：</p>
+<ol>
+<li>resultMap是需要key的在存入到Configuration.resultMap的时候，所以需要有生成规则，这时候<code>inheritEnclosingType()</code>就排上了用场；</li>
+<li>嵌套的resultMap也是需要解析的，这时候<code>processNestedResultMappings()</code>就排上了用场。</li>
+</ol>
+<pre><code class="java"> /**
+   * 例子：
+   * &lt;resultMap id=&quot;selectBlogDetailsResultMap2&quot; type=&quot;red.reksai.resultmap.entity.TbBlog&quot;&gt;
+   *     &lt;id property=&quot;blogId&quot; column=&quot;blog_id&quot; /&gt;
+   *     &lt;result property=&quot;blogTitle&quot; column=&quot;blog_title&quot;/&gt;
+   *     &lt;!--关联的嵌套结果映射resultMap=&quot;red.reksai.resultmap.mapper.TbAuthorMapper.authorResultMap&quot;--&gt;
+   *     &lt;association property=&quot;tbAuthor&quot;  /&gt;
+   *     &lt;collection property=&quot;tbPosts&quot; ofType=&quot;red.reksai.resultmap.entity.TbPost&quot; resultMap=&quot;red.reksai.resultmap.mapper.TbPostMapper.postResultMap&quot; column=&quot;post_blog_id&quot; select=&quot;red.reksai.resultmap.mapper.TbPostMapper.selectPost&quot;&gt;
+   *         &lt;collection property=&quot;tbComments&quot; ofType=&quot;red.reksai.resultmap.entity.TbComment&quot;/&gt;
+   *     &lt;/collection&gt;
+   *   &lt;/resultMap&gt;
+   *
+   * 从上下文构建结果映射：
+   *      这是一个通用的方法，针对的某一个标签，针对的是 constructor?,id*,result*,association*,collection*, discriminator?
+   *      故而在下面的方法描述中，会看到针对constructor?,id*,result*,association*,collection*, discriminator? 这些标签属性的全集，就不足为奇了。
+   * @param context  constructor?,id*,result*,association*,collection*, discriminator?
+   * @param resultType  resultType属性
+   * @param flags   {@link ResultFlag#ID} OR {@link ResultFlag#CONSTRUCTOR}
+   * @return  resultMapping
+   * @throws Exception
+   */
+  private ResultMapping buildResultMappingFromContext(XNode context, Class&lt;?&gt; resultType, List&lt;ResultFlag&gt; flags) throws Exception {
+    String property;
+
+    if (flags.contains(ResultFlag.CONSTRUCTOR)) {
+      // 如果是ID标识，则获取name属性的值 例如：constructor 下的idArg*,arg*，只有name，而没有property
+      property = context.getStringAttribute(&quot;name&quot;);
+    } else {
+      //如果是ID标识，则获取property属性的值 例如：&lt;id property=&quot;authorId&quot; column=&quot;author_id&quot;/&gt; property = &quot;authorId&quot;
+      property = context.getStringAttribute(&quot;property&quot;);
+    }
+    //获取column属性值
+    String column = context.getStringAttribute(&quot;column&quot;);
+    //获取javaType属性值
+    String javaType = context.getStringAttribute(&quot;javaType&quot;);
+    //获取jdbcType属性值
+    String jdbcType = context.getStringAttribute(&quot;jdbcType&quot;);
+    //获取select属性值
+    String nestedSelect = context.getStringAttribute(&quot;select&quot;);
+    //获取resultMap属性值，并处理其中嵌套的resultMapping
+    String nestedResultMap = context.getStringAttribute(&quot;resultMap&quot;,
+        processNestedResultMappings(context, Collections.emptyList(), resultType));
+    //获取notNullColumn属性值
+    String notNullColumn = context.getStringAttribute(&quot;notNullColumn&quot;);
+    //获取columnPrefix属性值
+    String columnPrefix = context.getStringAttribute(&quot;columnPrefix&quot;);
+    //获取typeHandler属性值
+    String typeHandler = context.getStringAttribute(&quot;typeHandler&quot;);
+    //获取resultSet的属性值
+    String resultSet = context.getStringAttribute(&quot;resultSet&quot;);
+    //获取foreignColumn属性值
+    String foreignColumn = context.getStringAttribute(&quot;foreignColumn&quot;);
+    //设置lazy的值，会考虑全局的懒加载设置，如果局部属性没有设置fetchType的值，那么使用全部的设置
+    boolean lazy = &quot;lazy&quot;.equals(context.getStringAttribute(&quot;fetchType&quot;, configuration.isLazyLoadingEnabled() ? &quot;lazy&quot; : &quot;eager&quot;));
+    Class&lt;?&gt; javaTypeClass = resolveClass(javaType);
+    //获取当前标签使用的typeHandler的实现类
+    Class&lt;? extends TypeHandler&lt;?&gt;&gt; typeHandlerClass = resolveClass(typeHandler);
+    //获取jdbcType对应的类
+    JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
+    //利用MapperBuilderAssistant构建ResultMappings
+    return builderAssistant.buildResultMapping(resultType, property, column, javaTypeClass, jdbcTypeEnum, nestedSelect, nestedResultMap, notNullColumn, columnPrefix, typeHandlerClass, flags, resultSet, foreignColumn, lazy);
+  }</code></pre>
+<h2 id="3-4-processNestedResultMappings"><a href="#3-4-processNestedResultMappings" class="headerlink" title="3.4. processNestedResultMappings()"></a>3.4. processNestedResultMappings()</h2><p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-09-KFAG1F.png" srcset="undefined" alt=""></p>
+<p>有上图可知，<code>processNestedResultMappings()</code>方法调用了<code>resultMapElement()</code>方法。</p>
+<p>在有嵌套<code>resultMap</code>的时候，才会回调<code>resultMapElement()</code>方法去解析，这其实就能解释我的疑问一，和疑问二了。</p>
+<p>疑问一解答：<code>ofType</code>、<code>resultType</code>、<code>javaType</code> 这些属性在能嵌套resultMap的标签上都会存在；</p>
+<p>疑问二解答：会存在<code>type==null</code>的时候，例如<code>association</code>、<code>collection</code>、<code>case</code>标签都能出现<code>type</code>为<code>null</code>，因为他们的属性没有<code>id</code>、<code>ofType</code>、<code>resultType</code>、<code>javaType</code>这些，但是其子节点也是能嵌套<code>resultMap</code>的，这些被称为<strong>匿名嵌套映射</strong>。</p>
+<pre><code>&lt;!ELEMENT association (constructor?,id*,result*,association*,collection*, discriminator?)&gt;
+
+&lt;!ELEMENT collection (constructor?,id*,result*,association*,collection*, discriminator?)&gt;
+
+&lt;!ELEMENT case (constructor?,id*,result*,association*,collection*, discriminator?)&gt;</code></pre><p><code>type</code>为<code>null</code>了，那么也就能调用到了<code>inheritEnclosingType()</code>方法了。</p>
+<p>现在开始分析<code>processNestedResultMappings()</code>方法，<code>processNestedResultMappings()</code>是处理匿名嵌套映射的，其实具体如下所示：</p>
+<pre><code class="java">  private String processNestedResultMappings(XNode context, List&lt;ResultMapping&gt; resultMappings, Class&lt;?&gt; enclosingType) throws Exception {
+    //下面的判断其实表现出来一个问题：就是只有&lt;association&gt;、&lt;collection&gt;、&lt;case&gt;的属性中才可以定义一个resultMap，即可以嵌套resultMappings
+    if (&quot;association&quot;.equals(context.getName())
+        || &quot;collection&quot;.equals(context.getName())
+        || &quot;case&quot;.equals(context.getName())) {
+      //判断属性select是否存在
+      if (context.getStringAttribute(&quot;select&quot;) == null) {
+        //如果不存在select属性，才去调用resultMapElement，解析嵌套
+        //验证集合
+        validateCollection(context, enclosingType);
+        ResultMap resultMap = resultMapElement(context, resultMappings, enclosingType);
+        return resultMap.getId();
+      }
+    }
+    return null;
+  }</code></pre>
+<h2 id="3-5-inheritEnclosingType"><a href="#3-5-inheritEnclosingType" class="headerlink" title="3.5. inheritEnclosingType()"></a>3.5. <code>inheritEnclosingType()</code></h2>
             <hr>
           </div>
           <br>

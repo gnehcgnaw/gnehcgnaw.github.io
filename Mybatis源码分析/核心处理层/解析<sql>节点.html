@@ -15,7 +15,7 @@
   <meta name="description" content="">
   <meta name="author" content="gnehcgnaw">
   <meta name="keywords" content="">
-  <title>Mybatis初始化(二)——汇总 ~ BeatShadow&#39;s blog</title>
+  <title>Mybatis初始化(二)——解析&lt;sql&gt;节点 ~ BeatShadow&#39;s blog</title>
 
   <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    197 字
+                    7 字
                   </span>&nbsp;
                 
 
@@ -161,10 +161,7 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="Mybatis初始化-二-——汇总"><a href="#Mybatis初始化-二-——汇总" class="headerlink" title="Mybatis初始化(二)——汇总"></a>Mybatis初始化(二)——汇总</h1><h1 id="1-XMLMapperBuilder"><a href="#1-XMLMapperBuilder" class="headerlink" title="1. XMLMapperBuilder"></a>1. XMLMapperBuilder</h1><p>通过对XMLConfigBuilder.mapperElement()方法的介绍我们知道，XMLMapperBuiler负责解析映射配置文件，它继承了BaseBuilder抽象类，也是具体建造者的角色。</p>
-<h2 id="1-1-解析-lt-cache-gt-节点"><a href="#1-1-解析-lt-cache-gt-节点" class="headerlink" title="1.1. 解析&lt;cache&gt;节点"></a>1.1. 解析<code>&lt;cache&gt;</code>节点</h2><p>Mybatis拥有非常强大的耳机缓存功能，该功能可以非常方便地进行配置，Mybatis默认情况下是没有开启二级缓存的，如果要为某命名空间开启二级缓存功能，则需要在相应映射配置文件中添加<cache>节点，还可以通过配置文件<cache>节点的相应属性，为二级缓存配置相应的特性（本质上就是添加相应的装饰器）。</p>
-<p>XMLMapperBuiler.cacheElement()方法主要负责解析<cache>节点，具体实现如下：</p>
-
+            <h1 id="解析-lt-sql-gt-节点"><a href="#解析-lt-sql-gt-节点" class="headerlink" title="解析&lt;sql&gt;节点"></a>解析<code>&lt;sql&gt;</code>节点</h1>
             <hr>
           </div>
           <br>
@@ -339,7 +336,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Mybatis初始化(二)——汇总&nbsp;",
+        "Mybatis初始化(二)——解析<sql>节点&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

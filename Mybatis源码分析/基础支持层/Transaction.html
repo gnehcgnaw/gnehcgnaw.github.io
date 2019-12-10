@@ -203,7 +203,7 @@
 }
 </code></pre>
 <p><code>Transaction</code>接口有<code>JdbcTranscation</code>和<code>ManagedTranscation</code>两个实现，其对象分别由<code>JdbcTranscationFactory</code>和<code>ManagedTranscationFactoy</code>负责创建。这里也使用利用了工厂方法模式。</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201160809-pfdyf4.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201160809-pfdyf4.png!github_blog" srcset="undefined" alt=""></p>
 <h2 id="1-1-JdbcTranscation"><a href="#1-1-JdbcTranscation" class="headerlink" title="1.1. JdbcTranscation"></a>1.1. JdbcTranscation</h2><p><code>JdbcTranscation</code>依赖<code>JDBC Connection</code>控制事务的提交和回滚。<code>JdbcTranscation</code>中字段的含义如下所示：</p>
 <pre><code class="java">  /**
    * 事务对应的数据库连接

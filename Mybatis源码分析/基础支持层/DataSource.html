@@ -428,7 +428,7 @@ static {
 <p>数据库连接池在初始化是，一般会创建一定数量的数据库连接并添加到连接池中备用。当程序需要使用数据库连接时，从池中请求连接；当程序不再使用该连接时，会将其返回到池中缓存，等待下次使用，而不是直接关闭。当然，数据库连接线会控制连接总数的上限以及空闲连接数的上限，如果连接池创建的总连接数已达到上限，且都已被占用，则后续请求连接的线程会进入阻塞队列等待，知道有线程释放出可用连接。如果连接池中空闲连接数较多，达到其上限，则后续返回的空闲连接不会放入池中，而是直接关闭，这样可以减少系统维护多余数据库连接的开销。</p>
 <p>如果将总连接数的上线设置得过大，可能会因为连接数过多而导致数据库僵死，系统整体性能下降；如果总连接数上线过小，则无法完全发挥数据库的性能，浪费数据库资源。如果将空闲连接的上线设置得过大，则会浪费系统资源来维护这些空闲连接；如果空闲连接上线过小，当出现瞬间的峰值请求时，系统的快速响应能力就比较弱。<strong>所以在设置数据库连接池的这两个值时，需要进行性能测试、权衡以及一些经验。</strong></p>
 <p><code>PooledDataSource</code>实现了简易数据库连接池的功能，它依赖的组件如下图所指示，其中需要注意的是，<code>PooledDataSource</code>创建新数据库连接的功能是依赖其中封装的<code>UnpooledDataSource</code>对象实现的。</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191130164424-ZdSnNd.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191130164424-ZdSnNd.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
 <p>在研究<code>PooledDataSource</code>的时候从一个简单的例子出发，不然不知道怎么研究<code>PooledDataSource</code>、<code>PooledConnection</code>、<code>PoolState</code>、<code>UnpooledDataSource</code>、<code>DataSource</code>五者之间的调用关系：</p>
 <pre><code class="java">package red.reksai.datasource;
@@ -790,7 +790,7 @@ public class PooledDataSourceFactoryTest {
   }
 </code></pre>
 <p>以上代码的逻辑流程如下所示：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201140942-l8rFwF.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201140942-l8rFwF.png!github_blog" srcset="undefined" alt=""></p>
 <p>有以上流程，我们发现在在活跃数没有大于最大限定的时候创建了一个新的<code>PooledConnection</code>，这里调用了<code>PooledConnection</code>的构造方法，代码如下所示：</p>
 <pre><code class="java"> public PooledConnection(Connection connection, PooledDataSource dataSource) {
     this.hashCode = connection.hashCode();
@@ -901,7 +901,7 @@ public class PooledDataSourceFactoryTest {
   }
 </code></pre>
 <p>以上代码的逻辑流程如下所示：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201152437-0IpAsL.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191201152437-0IpAsL.png!github_blog" srcset="undefined" alt=""></p>
 <hr>
 <p>需要注意的是，<code>PooledDataSouece.pushConnection()</code>方法和<code>PooledDataSouece.popConnection()</code>方法中都调用了<code>PooledDataSource.isValid()</code>方法来检测<code>PooledConnection</code>的有效性，该方法除了检测<code>PooledDataSource.valid</code>字段的值，还会调用<code>PooledDataSource.pingConnection()</code>方法尝试让数据库执行<code>poolPingQuery</code>字段中记录的测试<code>SQL</code>语句，从而检测真正的数据库连接对象是否依然可以正常使用。<code>isValid()</code>方法以及<code>pingConnection()</code>方法的代码如下所示：</p>
 <pre><code class="java">  /**

@@ -167,11 +167,11 @@
 <p>类似于<code>Spring</code>，<code>Mybatis</code>等灵活性和扩展性都很高的开源框架都提供了很多配置项，开发人员需要在使用时提供相应的配置信息，实现相应的需求。<code>Mybatis</code>中的配置文件主要有两个，分别是<code>mybatis-config.xml</code>配置文件和映射配置文件。</p>
 <p>现在主流的配置方式除了使用XML配置文件，还会配合注解进行配置。在<code>Mybatis</code>初始化过程中，除了会读取<code>mybatis-config.xml</code>配置文件以及映射配置文件，还会加载配置文件指定的类，处理类中的注解，创建一些配置对象，最终完成框架中各个模块的初始化。另外，也可以使用<code>Java API</code>方式对<code>Mybatis</code>进行配置，这种硬编码的配置方式主要用在配置量比较少且配置信息不常变化的场景下。</p>
 <h1 id="1-建造者模式"><a href="#1-建造者模式" class="headerlink" title="1. 建造者模式"></a>1. 建造者模式</h1><h1 id="2-BaseBuidler"><a href="#2-BaseBuidler" class="headerlink" title="2. BaseBuidler"></a>2. BaseBuidler</h1><p><code>BaseBuilder</code>的子类如下所示：</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128141904-lVPgr8.png" srcset="undefined" style="zoom:50%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128141904-lVPgr8.png!github_blog" srcset="undefined" style="zoom:50%;" />
 
 <p>因为<code>VelocitySqlSourceBuilder</code>只是一个测试用例，所以我暂且不把它划为<code>BaseBuilder</code>，包括其静态内部类</p>
 <p><code>ParameterMappingTokenHandler</code>，这样<code>BaseBuilder</code>的子类结构图就如下所示：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128142203-inbhpO.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128142203-inbhpO.png!github_blog" srcset="undefined" alt=""></p>
 <p>正如签名所示，<code>Mybatis</code>的初始化过程使用了建造者模式，这里的<code>BaseBuilder</code>抽象类就扮演了建造者接口的角色。<code>BaseBuilder</code>中的核心字段的含义如下：</p>
 <ul>
 <li><code>Configuration</code></li>
@@ -195,7 +195,7 @@
    */
   protected final TypeHandlerRegistry typeHandlerRegistry;</code></pre>
 <p><code>BaseBuilder</code>中记录的<code>TypeAliasRegistry</code>对象和<code>TypeHandlerRegistry</code>对象，其实是全局唯一的，它们都是在<code>Configuration</code>对象初始化时创建的，代码如下所示：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128145108-dgZGGY.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191128145108-dgZGGY.png!github_blog" srcset="undefined" alt=""></p>
 <p>在<code>BaseBuilder</code>构造函数中，通过相应的<code>Configuration.get*()</code>方法得到<code>TypeAliasRegistry</code>和<code>TypeHandlerRegistry</code>对象，并赋值给<code>BaseBuilder</code>相应的字段。</p>
 <pre><code class="java">  /**
    * 构造方法

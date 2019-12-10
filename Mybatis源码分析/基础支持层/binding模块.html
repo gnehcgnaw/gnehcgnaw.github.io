@@ -181,10 +181,10 @@ public interface TbBlogMapper {
 <pre><code class="java">BlogMapper blogMapper = sqlSessionFactory.openSession().getMapper(BlogMapper.class);
     System.out.println(blogMapper.selectBlog(1));</code></pre>
 <p>在开始分析binding模块的实现之前，先了解一下该模块中核心组件之间的关系，如图所示（Mybatis3.4版本）：</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208153336-ujLRln.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208153336-ujLRln.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
 <p>在Mybatis3.5的时候，引入了MapperMethodInvoker，引入原因在后续源码分析中会介绍，所以核心组件之间的关系就发生了变化，如图所示：</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209001132-lC9CdA.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209001132-lC9CdA.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
 <h1 id="1-MapperRegistry"><a href="#1-MapperRegistry" class="headerlink" title="1. MapperRegistry"></a>1. MapperRegistry</h1><p>MapperRegistry是Mapper接口及其对应的代理工厂的注册中心，MapperRegistry中字段的含义如下所示：</p>
 <pre><code class="java"> /**
@@ -275,14 +275,14 @@ public interface CommentMapper {
 </li>
 <li><p>调用<code>addMappers()</code>方法</p>
 <p>调用链：<code>XMLConfigBuider.mapperElement()</code>–&gt;<code>MapperRegistry.addMappers()</code>。</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164710-dusvB3.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164710-dusvB3.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164812-A4jrm3.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208164812-A4jrm3.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
 </li>
 </ol>
 <h2 id="1-2-getMapper"><a href="#1-2-getMapper" class="headerlink" title="1.2. getMapper()"></a>1.2. getMapper()</h2><p>在需要执行某<code>SQL</code>语句时，会先调用<code>MapperRegistry.getMapper()</code>方法获取实现了<code>Mapper</code>接口的代理对象，例如：<code>sqlSessionFactory.openSession().getMapper(CommentMapper.class)</code>方法得到的实际上是<code>Mybatis</code>通过<code>jdk</code>动态代理为<code>CommentMapper</code>接口生成的代理对象，如下图所示：</p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208165342-Gn3EQt.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191208165342-Gn3EQt.png!github_blog" srcset="undefined" alt=""></p>
 <p><code>MapperRegistry.getMapper()</code>方法的代码如下所示：</p>
 <pre><code class="java">  @SuppressWarnings(&quot;unchecked&quot;)
   public &lt;T&gt; T getMapper(Class&lt;T&gt; type, SqlSession sqlSession) {
@@ -561,7 +561,7 @@ public interface CommentMapper {
 <p>通过以上代码的分析，结合如下示例，我用时序图的形式描述了其执行流程，如下图所示：</p>
 <pre><code class="java">CommentMapper mapper = sqlSessionFactory.openSession().getMapper(CommentMapper.class);
     System.out.println(mapper.selectTbComment(1));</code></pre>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209014817-pEQn5X.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191209014817-pEQn5X.png!github_blog" srcset="undefined" alt=""></p>
 <p>根据执行的时序图，我们接下来就应该去分析<code>MapperMethod</code>类了。</p>
 <h1 id="4-MapperMethod"><a href="#4-MapperMethod" class="headerlink" title="4. MapperMethod"></a>4. MapperMethod</h1><p>MapperMethod中封装了Mapper接口中对应方法的信息，以及对应SQL语句的信息，MapperMethod可以看做是Mapper接口以及映射配置文件中定义的SQL语句的桥梁。MepperMethod中各个字段的信息如下：</p>
 <pre><code class="java">  /**

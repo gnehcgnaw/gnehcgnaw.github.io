@@ -162,7 +162,7 @@
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
             <h1 id="反射工具箱"><a href="#反射工具箱" class="headerlink" title="反射工具箱"></a>反射工具箱</h1><h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h1><p>​        Mybatis在进行参数处理、结果集映射等操作时，会涉及大量的反射操作。Java中的反射虽然功能强大，但是代码编写起来比较复杂容易出错，为了简化反射操作的相关代码，Mybatis提供了专门的反射模块，该模块位于<code>org.apache.ibatis.reflection</code>包中，它对常见的反射操作做了封装，提供了更加简洁方便的反射API。</p>
-<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126092626-rve1an.png" srcset="undefined" style="zoom:67%;" />
+<img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126092626-rve1an.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
 <h1 id="2-Reflector-amp-ReflectorFactory"><a href="#2-Reflector-amp-ReflectorFactory" class="headerlink" title="2. Reflector&amp;ReflectorFactory"></a>2. Reflector&amp;ReflectorFactory</h1><h2 id="2-1-Reflector"><a href="#2-1-Reflector" class="headerlink" title="2.1. Reflector"></a>2.1. Reflector</h2><p>​         <code>Reflector</code>是<code>Mybatis</code>中反射模块的基础，每个<code>Reflector</code>对象都对应一个类，在Reflector中缓存了反射操作需要使用的类的元信息。Reflector中各个字段的含义如下所示：</p>
 <pre><code class="java">/**
@@ -476,11 +476,11 @@ class Items{
 <ul>
 <li>在以下位置打断点</li>
 </ul>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126233022-6FOt8I.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126233022-6FOt8I.png!github_blog" srcset="undefined" alt=""></p>
 <ul>
 <li>观察conflictingGetters集合中的值，如下所示：</li>
 </ul>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126233326-2wTK6y.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191126233326-2wTK6y.png!github_blog" srcset="undefined" alt=""></p>
 <p>其中属性名称为<code>list</code>对应的<code>getter</code>方法的集合中有两个<code>Method</code>，这就是因为<code>User</code>在覆盖<code>Person</code>中的<code>getList()</code>方法是返回值从<code>List</code>变成了<code>ArrayList</code>，又因为生成方法签名的规则如下所示，所以就造成了有两个不同方法签名的方法被添加到了<code>uniqueMethods</code>集合中，这不是我们想要的结果。</p>
 <pre><code class="java">// Reflector.java
 /**
@@ -827,11 +827,11 @@ null
 <li><p>递归调用2。</p>
 </li>
 </ol>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129152716-h9Os7u.png" srcset="undefined" alt=""></p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153239-L5s0UA.png" srcset="undefined" alt=""></p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153351-r3eIeh.png" srcset="undefined" alt=""></p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153624-PBw7Sr.png" srcset="undefined" alt=""></p>
-<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153949-KaKXgI.png" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129152716-h9Os7u.png!github_blog" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153239-L5s0UA.png!github_blog" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153351-r3eIeh.png!github_blog" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153624-PBw7Sr.png!github_blog" srcset="undefined" alt=""></p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/20191129153949-KaKXgI.png!github_blog" srcset="undefined" alt=""></p>
 <h3 id="2-5-2-测试用例"><a href="#2-5-2-测试用例" class="headerlink" title="2.5.2. 测试用例"></a>2.5.2. 测试用例</h3><pre><code class="java">package red.reksai.reflection;
 
 import org.apache.ibatis.reflection.DefaultReflectorFactory;

@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    1.5k 字
+                    3k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      5 分钟
+                      12 分钟
                   </span>&nbsp;
                 
 
@@ -284,8 +284,13 @@
 </code></pre>
 <h1 id="2-resultMap节点结构"><a href="#2-resultMap节点结构" class="headerlink" title="2. resultMap节点结构"></a>2. resultMap节点结构</h1><h2 id="2-1-resultMap下的子节点"><a href="#2-1-resultMap下的子节点" class="headerlink" title="2.1. resultMap下的子节点"></a>2.1. resultMap下的子节点</h2><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-10-FwRfj6.png!github_blog" srcset="undefined" style="zoom:33%;" />
 
+
+
 <h2 id="2-2-resultMap节点属性表"><a href="#2-2-resultMap节点属性表" class="headerlink" title="2.2. resultMap节点属性表"></a>2.2. resultMap节点属性表</h2><p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-10-09yPHj.png!github_blog" srcset="undefined" alt=""></p>
-<h1 id="3-解析resultMap节点"><a href="#3-解析resultMap节点" class="headerlink" title="3. 解析resultMap节点"></a>3. 解析resultMap节点</h1><p>解析resultMap节点涉及到的核心类和方法很多，具体如下所示：</p>
+<p>由图一可知：<resultMap>下的节点不只一层，而是可以无限嵌套；</p>
+<p>由图二可知：association、collection、constructor下的isArg和arg、discriminiator下的case都可以定义属性resultMap；</p>
+<p>结合ResulMap和ResultMapping类知道了在解析resultMap节点的时候势必要解析嵌套的resultMappings。</p>
+<h1 id="3-解析resultMap节点涉及到的方法"><a href="#3-解析resultMap节点涉及到的方法" class="headerlink" title="3. 解析resultMap节点涉及到的方法"></a>3. 解析resultMap节点涉及到的方法</h1><p>解析resultMap节点涉及到的核心类和方法很多，具体如下所示：</p>
 <ul>
 <li><p>XMLMapperBuilder</p>
 <ul>
@@ -322,12 +327,153 @@
 </ul>
 </li>
 </ul>
-<h1 id="3-1-resultMapElement"><a href="#3-1-resultMapElement" class="headerlink" title="3.1. resultMapElement()"></a>3.1. resultMapElement()</h1><p>在研究解析<resultMap>节点源码的时候，遇到了两个疑问（下面会介绍），其实产生的疑问都有一个共同的特点就是我在读程序的时候习惯从上而下去读，发现过程组的一些参数和方法以及过程是有可能永远不会被执行的，这是后我就怀疑了源码这么写的缘由，其实这个都归结于自己的抽象能力不足、认为这个方法只有一个入口被调用等等，所以我在今后研究源码的时候，遇到类似的情况会先查看方法的被调用情况。</p>
+<h1 id="4-结合示例分析Mybatis解析resultMap节点的过程"><a href="#4-结合示例分析Mybatis解析resultMap节点的过程" class="headerlink" title="4. 结合示例分析Mybatis解析resultMap节点的过程"></a>4. 结合示例分析Mybatis解析resultMap节点的过程</h1><h2 id="4-1-示例一（resultMap节点下只有id和result）"><a href="#4-1-示例一（resultMap节点下只有id和result）" class="headerlink" title="4.1. 示例一（resultMap节点下只有id和result）"></a>4.1. 示例一（resultMap节点下只有id和result）</h2><pre><code class="xml">   &lt;resultMap id=&quot;authorResultMap&quot; type=&quot;TbAuthor&quot;&gt;
+      &lt;id property=&quot;authorId&quot; column=&quot;author_id&quot;/&gt;
+      &lt;result property=&quot;authorUsername&quot; column=&quot;author_username&quot;/&gt;
+      &lt;result property=&quot;authorPassword&quot; column=&quot;author_password&quot;/&gt;
+      &lt;result property=&quot;authorEmail&quot; column=&quot;author_email&quot;/&gt;
+   &lt;/resultMap&gt;</code></pre>
+<ol>
+<li>开始解析，解析resultMap节点首先调用的方法就是resultMapElement()，如图所示：</li>
+</ol>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-10-8ftu4k.png!github_blog" srcset="undefined" alt=""></p>
+<ol start="2">
+<li>根据以下debug的显示，<strong>“</strong><del>以下代码主要是解析resultMap中type的属性值，并获取属性值对应的Class类型</del><strong>“</strong>（为什么用删除线往后读就知道了）。</li>
+</ol>
+<pre><code class="java">//获取属性值
+String type = resultMapNode.getStringAttribute(&quot;type&quot;,
+        resultMapNode.getStringAttribute(&quot;ofType&quot;,
+            resultMapNode.getStringAttribute(&quot;resultType&quot;,
+                resultMapNode.getStringAttribute(&quot;javaType&quot;))));
+//获取resultMap映射的Class类型
+    Class&lt;?&gt; typeClass = resolveClass(type);
+    if (typeClass == null) {
+      typeClass = inheritEnclosingType(resultMapNode, enclosingType);
+    }</code></pre>
+<p>结合上述列出的<strong>resultMap节点属性表</strong>可知：</p>
+<ul>
+<li><p>type属性只存在于<resultMap>中，而且必须定义为非空属性值；</p>
+</li>
+<li><p><resultMap>节点中不存在ofType、resultType、javaType属性；</p>
+</li>
+<li><p>ofType属性只存在与<collection>节点中；</p>
+</li>
+<li><p>resultType属性可以存在于<discriminator>节点的子节点<case>中；</p>
+</li>
+<li><p>javaType属性可以存下于<id>、<result>、<association>（以及<association>下的<idArg>和<arg>）、<collection>、<discriminator>节点中；</p>
+</li>
+</ul>
+<p>结合<strong>存在即合理</strong>的理论，可知：</p>
+<ul>
+<li>上述的代码就不只是为了解析<resultMap>节点中的属性了；</li>
+<li>也会解析上述所说的包含了ofType、resultType、javaType的节点；</li>
+<li>也有可能解析不包含ofType、resultType、javaType的节点，因为type==null的时候也可以调用inheritEnclosingType()方法返回一个typeClass对象。</li>
+</ul>
+<p>那么就确定resultMapElement()方法，会被符合某些条件的节点调用，后续可知是processNestedResultMappings()方法中也调用了resultMapElement()。</p>
+<ol start="3">
+<li>初始化对象Discriminator和resultMappings（List<ResultMapping>），并将存入的值add到resultMappings结合中（读到这里也就有了头绪，resultMapElement()方法的用途之一就是迭代将节点解析成ResultMapping对象并将其存入到resultMappings集合中），代码如下所示：</li>
+</ol>
+<pre><code class="java">    //初始化一个Discriminator，用于存放把&lt;discriminator&gt;节点解析的属性
+    Discriminator discriminator = null;
+    //初始化一个集合，该集合用于记录解析的结果
+    List&lt;ResultMapping&gt; resultMappings = new ArrayList&lt;&gt;();
+    resultMappings.addAll(additionalResultMappings);</code></pre>
+<ol start="4">
+<li>循环解析<resultMap>节点下的所有子节点，代码如下所示：</li>
+</ol>
+<pre><code class="java">//处理&lt;resultMap&gt;的子节点
+    List&lt;XNode&gt; resultChildren = resultMapNode.getChildren();
+    for (XNode resultChild : resultChildren) {
+      if (&quot;constructor&quot;.equals(resultChild.getName())) {
+        //处理&lt;constructor&gt;节点
+        processConstructorElement(resultChild, typeClass, resultMappings);
+      } else if (&quot;discriminator&quot;.equals(resultChild.getName())) {
+        //处理&lt;discriminator&gt;节点
+        discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
+      } else {
+        //处理&lt;id&gt;、&lt;result&gt;、&lt;association&gt;、&lt;collection&gt; 节点
+        List&lt;ResultFlag&gt; flags = new ArrayList&lt;&gt;();
+        //如果是&lt;id&gt;节点，则向flags集合中添加ResultFlag.ID
+        if (&quot;id&quot;.equals(resultChild.getName())) {
+          flags.add(ResultFlag.ID);
+        }
+        //创建ResultMapping对象，并添加到resultMappings集合
+        resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
+      }
+    }</code></pre>
+<p>因为示例一中没有<constructor>和<discriminator>节点，所以程序会走到最后一个else中，而我们知道<resultMap>节点下还有<id>、<result>、<association>、<collection>节点，所以这个else中的代码会处理<id>、<result>、<association>、<collection>节点。</p>
+<p>else中大的步骤可以分为三步：</p>
+<ul>
+<li>创建一个List<ResultFlag>，如果有节点名称为id，那么就添加一个ResultFlag.ID到集合中；</li>
+<li>调用buildResultMappingFromContext()方法得到一个ResultMapping对象；</li>
+<li>将得到的ResultMapping对象对象添加到resultMappings集合中。</li>
+</ul>
+<p>其实最关键的代码一步就是调用buildResultMappingFromContext()方法返回一个ResultMapping对象。</p>
+<h2 id="4-2-示例二（在示例一的基础上加上collection和association）"><a href="#4-2-示例二（在示例一的基础上加上collection和association）" class="headerlink" title="4.2. 示例二（在示例一的基础上加上collection和association）"></a>4.2. 示例二（在示例一的基础上加上collection和association）</h2><h2 id="4-3-示例三（在示例二的基础上加上constructor）"><a href="#4-3-示例三（在示例二的基础上加上constructor）" class="headerlink" title="4.3. 示例三（在示例二的基础上加上constructor）"></a>4.3. 示例三（在示例二的基础上加上constructor）</h2><h2 id="4-4-示例四（在示例三的基础上加上了discriminator）"><a href="#4-4-示例四（在示例三的基础上加上了discriminator）" class="headerlink" title="4.4. 示例四（在示例三的基础上加上了discriminator）"></a>4.4. 示例四（在示例三的基础上加上了discriminator）</h2><h1 id="5-解析resultMap节点涉及到的方法的源码加注释"><a href="#5-解析resultMap节点涉及到的方法的源码加注释" class="headerlink" title="5. 解析resultMap节点涉及到的方法的源码加注释"></a>5. 解析resultMap节点涉及到的方法的源码加注释</h1><h2 id="5-1-resultMapElement"><a href="#5-1-resultMapElement" class="headerlink" title="5.1. resultMapElement()"></a>5.1. resultMapElement()</h2><p><strong>分隔符以内的可以不看，是博主在研究源码的时候的一些总结。</strong></p>
+<hr>
+<p>在研究解析<resultMap>节点源码的时候，遇到了两个疑问（下面会介绍），其实产生的疑问都有一个共同的特点就是我在读程序的时候习惯从上而下去读，发现过程组的一些参数和方法以及过程是有可能永远不会被执行的，这是后我就怀疑了源码这么写的缘由，其实这个都归结于自己的抽象能力不足、认为这个方法只有一个入口被调用等等，所以我在今后研究源码的时候，遇到类似的情况会先查看方法的被调用情况。</p>
 <p>使用Find Usages查看resultMapElement()方法的使用情况如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019-12-10-iUX4jR.png!github_blog" srcset="undefined" alt=""></p>
-<p>从上图中可以看到resultMapElement()方法被两个方法调用到，分别是：resultMap(XNode)和processNestedResultMappings(XNode,List<ResultMappings>,Class&lt;?&gt;)，我们需要关心的是后者【参看：3.6. processNestedResultMappings()】</p>
-<h2 id="3-2-inheritEnclosingType"><a href="#3-2-inheritEnclosingType" class="headerlink" title="3.2. inheritEnclosingType()"></a>3.2. inheritEnclosingType()</h2><h2 id="3-3-processConstructorElement"><a href="#3-3-processConstructorElement" class="headerlink" title="3.3. processConstructorElement()"></a>3.3. processConstructorElement()</h2><h2 id="3-4-processDiscriminatorElement"><a href="#3-4-processDiscriminatorElement" class="headerlink" title="3.4. processDiscriminatorElement()"></a>3.4. processDiscriminatorElement()</h2><h2 id="3-5-buildResultMappingFormContext"><a href="#3-5-buildResultMappingFormContext" class="headerlink" title="3.5. buildResultMappingFormContext()"></a>3.5. buildResultMappingFormContext()</h2><h2 id="3-6-processNestedResultMappings"><a href="#3-6-processNestedResultMappings" class="headerlink" title="3.6. processNestedResultMappings()"></a>3.6. processNestedResultMappings()</h2><p>这个方法的作用是处理嵌套的resultMappings，那为什么会有嵌套的resultMappings呢？</p>
-<h2 id="3-7-validateCollection"><a href="#3-7-validateCollection" class="headerlink" title="3.7. validateCollection()"></a>3.7. validateCollection()</h2>
+<p>从上图中可以看到resultMapElement()方法被两个方法调用到，分别是：resultMap(XNode)和processNestedResultMappings(XNode,List<ResultMappings>,Class&lt;?&gt;)，我们需要关心的是后者【参看：<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E8%A7%A3%E6%9E%90%3CresultMap%3E%E8%8A%82%E7%82%B9.html#3-6-processNestedResultMappings" target="_blank" rel="noopener">3.6. processNestedResultMappings()</a>】</p>
+<hr>
+<p>resultMapElement()方法的具体解析如下所示：</p>
+<pre><code class="java">private ResultMap resultMapElement(XNode resultMapNode, List&lt;ResultMapping&gt; additionalResultMappings, Class&lt;?&gt; enclosingType) throws Exception {
+    ErrorContext.instance().activity(&quot;processing &quot; + resultMapNode.getValueBasedIdentifier());
+
+    String type = resultMapNode.getStringAttribute(&quot;type&quot;,
+        resultMapNode.getStringAttribute(&quot;ofType&quot;,
+            resultMapNode.getStringAttribute(&quot;resultType&quot;,
+                resultMapNode.getStringAttribute(&quot;javaType&quot;))));
+    //获取resultMap映射的Class类型
+    Class&lt;?&gt; typeClass = resolveClass(type);
+    if (typeClass == null) {
+      typeClass = inheritEnclosingType(resultMapNode, enclosingType);
+    }
+    //初始化一个Discriminator，用于存放把&lt;discriminator&gt;节点解析的属性
+    Discriminator discriminator = null;
+    //初始化一个集合，该集合用于记录解析的结果
+    List&lt;ResultMapping&gt; resultMappings = new ArrayList&lt;&gt;();
+    resultMappings.addAll(additionalResultMappings);
+    //处理&lt;resultMap&gt;的子节点
+    List&lt;XNode&gt; resultChildren = resultMapNode.getChildren();
+    for (XNode resultChild : resultChildren) {
+      if (&quot;constructor&quot;.equals(resultChild.getName())) {
+        //处理&lt;constructor&gt;节点
+        processConstructorElement(resultChild, typeClass, resultMappings);
+      } else if (&quot;discriminator&quot;.equals(resultChild.getName())) {
+        //处理&lt;discriminator&gt;节点
+        discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
+      } else {
+        //处理&lt;id&gt;、&lt;result&gt;、&lt;association&gt;、&lt;collection&gt; 节点
+        List&lt;ResultFlag&gt; flags = new ArrayList&lt;&gt;();
+        //如果是&lt;id&gt;节点，则向flags集合中添加ResultFlag.ID
+        if (&quot;id&quot;.equals(resultChild.getName())) {
+          flags.add(ResultFlag.ID);
+        }
+        //创建ResultMapping对象，并添加到resultMappings集合
+        resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
+      }
+    }
+    //获取id属性值
+    String id = resultMapNode.getStringAttribute(&quot;id&quot;,
+            resultMapNode.getValueBasedIdentifier());
+    //获取&lt;resultMap&gt;节点的extends属性的值，该属性指定了&lt;resultMap&gt;节点的继承关系
+    String extend = resultMapNode.getStringAttribute(&quot;extends&quot;);
+    //获取&lt;resultMap&gt;节点的autoMapping属性的值
+    //如果该属性设置为true，则启动自动映射功能，即自动查找与列名相同的属性名，并调用setter方法。
+    //如果该属性设置为false，则需要在&lt;resultMapping&gt;节点内注明映射关系才能调用对应的setter方法。
+    Boolean autoMapping = resultMapNode.getBooleanAttribute(&quot;autoMapping&quot;);
+    //创建一个ResultMapResolver，并为当前的ResultMapResolver设置属性初始值，这些初始值会在ResultMapResolver的resolve()方法中派上用场
+    ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
+    try {
+      //创建ResultMap对象，并将其添加到Configuration.resultMap集合中，
+      return resultMapResolver.resolve();
+    } catch (IncompleteElementException  e) {
+      configuration.addIncompleteResultMap(resultMapResolver);
+      throw e;
+    }
+  }</code></pre>
+<h2 id="5-2-inheritEnclosingType"><a href="#5-2-inheritEnclosingType" class="headerlink" title="5.2. inheritEnclosingType()"></a>5.2. inheritEnclosingType()</h2><h2 id="5-3-processConstructorElement"><a href="#5-3-processConstructorElement" class="headerlink" title="5.3. processConstructorElement()"></a>5.3. processConstructorElement()</h2><h2 id="5-4-processDiscriminatorElement"><a href="#5-4-processDiscriminatorElement" class="headerlink" title="5.4. processDiscriminatorElement()"></a>5.4. processDiscriminatorElement()</h2><h2 id="5-5-buildResultMappingFormContext"><a href="#5-5-buildResultMappingFormContext" class="headerlink" title="5.5. buildResultMappingFormContext()"></a>5.5. buildResultMappingFormContext()</h2><h2 id="5-6-processNestedResultMappings"><a href="#5-6-processNestedResultMappings" class="headerlink" title="5.6. processNestedResultMappings()"></a>5.6. processNestedResultMappings()</h2><h2 id="5-7-validateCollection"><a href="#5-7-validateCollection" class="headerlink" title="5.7. validateCollection()"></a>5.7. validateCollection()</h2>
             <hr>
           </div>
           <br>

@@ -56,6 +56,33 @@
   
   
   <entry>
+    <title>Mybatis初始化(二)——5.构建语句</title>
+    <link href="undefinedMybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html"/>
+    <url>Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html</url>
+    
+    <content type="html"><![CDATA[<h1 id="构建语句"><a href="#构建语句" class="headerlink" title="构建语句"></a>构建语句</h1>]]></content>
+    
+    
+    <categories>
+      
+      <category>Mybatis源码分析</category>
+      
+      <category>核心处理层</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Mybatis源码分析</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>缓存模块</title>
     <link href="undefinedMybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97.html"/>
     <url>Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97.html</url>
@@ -220,7 +247,7 @@
   
   
   <entry>
-    <title>Mybatis初始化(二)——3.解析&lt;sql&gt;节点</title>
+    <title>解析&lt;sql&gt;节点</title>
     <link href="undefinedMybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E8%A7%A3%E6%9E%90%3Csql%3E%E8%8A%82%E7%82%B9.html"/>
     <url>Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E8%A7%A3%E6%9E%90%3Csql%3E%E8%8A%82%E7%82%B9.html</url>
     

@@ -257,7 +257,12 @@ vim /etc/hosts13.229.188.59 github.com
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">构建语句</div>
+          <div class="index-text mb-1">构建语句在进行解析Mapper映射配置文件的时候，还有一类比较重要的节点需要解析，也就是本节将要介绍的SQL节点。这些SQL节点主要用于定义SQL语句，它们不在有XMLMapperBuilder进行解析，而是有XMLStatementBuilder负责进行解析。
+下面开始分析其解析SQL相关节点的过程，XMLStatementBuilder.parseStatementNode()方法是解析SQL节点的入口函数，其具体实现如下所示，我将会按照图中标记的步骤分析：
+
+
+步骤1：首先判断Configuration.databaseId和select、update、insert、delete标签中配置的databaseId是否一致，如果一致就进行下面的步骤，如果不一致就直接跳出，说白了就是：Mapper映射配置文件都会被加载，但是Mapper映射配置文件的节点有可能不会被解析，这些节点是select、update、insert、delete还有上节说的sql，涉及到的代码如下所示：
+    String id = context.getStringAttribute(&quot;id&quo</div>
         </div>
       </a>
 

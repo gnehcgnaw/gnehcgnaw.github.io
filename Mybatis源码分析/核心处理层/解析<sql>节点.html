@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    7 字
+                    876 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      3 分钟
                   </span>&nbsp;
                 
 
@@ -161,7 +161,81 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="解析-lt-sql-gt-节点"><a href="#解析-lt-sql-gt-节点" class="headerlink" title="解析&lt;sql&gt;节点"></a>解析<code>&lt;sql&gt;</code>节点</h1>
+            <h1 id="解析-lt-sql-gt-节点"><a href="#解析-lt-sql-gt-节点" class="headerlink" title="解析&lt;sql&gt;节点"></a>解析<code>&lt;sql&gt;</code>节点</h1><p>在映射配置文件中，可以使用<code>&lt;sql&gt;</code>节点定义可重用的~语句片段。当需要重用<code>&lt;sql&gt;</code>节点中定义的<code>SQL</code>语句片段时，只需要使用include节点引用相应的片段即可，这样，在编写<code>SQL</code>语句以及维护这些<code>SQL</code>语句时，都会比较方便。<code>&lt;include&gt;</code>节点的解析在后面详细介绍。</p>
+<p><code>XMLMapperBuilder.sqlElement()</code>方法负责解析映射配置文件中定义的的全部<code>&lt;sql&gt;</code>节点，具体代码如下所示：</p>
+<pre><code class="java">  private void sqlElement(List&lt;XNode&gt; list, String requiredDatabaseId) {
+    //遍历所有的&lt;sql&gt;节点
+    for (XNode context : list) {
+      //解析&lt;sql&gt;节点
+      //获取&lt;sql&gt;节点的databaseId属性的值
+      String databaseId = context.getStringAttribute(&quot;databaseId&quot;);
+      //获取&lt;sql&gt;节点的id属性的值
+      String id = context.getStringAttribute(&quot;id&quot;);
+      //获取在当前命名空间的对应的全路径id
+      id = builderAssistant.applyCurrentNamespace(id, false);
+      //进行数据库ID匹配，如果当前sql片段所属的databaseId和configuration.databaseId相等
+      if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
+        //将匹配的sql片段，放入Configuration.sqlFragments集合中
+        sqlFragments.put(id, context);
+      }
+    }
+  }</code></pre>
+<p>这个章节比较简单，所以这里讲一下<code>Configuration.StricMap</code>类：</p>
+<p>这个类在存储解析<code>Mapper</code>映射配置文件中之后的对象中，起到了至关重要的作用，具体体现如下所示：</p>
+<pre><code class="java"> /**
+   * key = Cache的ID （默认是映射文件的namespace）
+   * value = Cache对象（二级缓存）
+   */
+  protected final Map&lt;String, Cache&gt; caches = new StrictMap&lt;&gt;(&quot;Caches collection&quot;);
+  /**
+   * 用于存储ResultMap
+   */
+  protected final Map&lt;String, ResultMap&gt; resultMaps = new StrictMap&lt;&gt;(&quot;Result Maps collection&quot;);
+  protected final Map&lt;String, ParameterMap&gt; parameterMaps = new StrictMap&lt;&gt;(&quot;Parameter Maps collection&quot;);
+ /**
+   * 用于存储KeyGenerator
+   */
+  protected final Map&lt;String, KeyGenerator&gt; keyGenerators = new StrictMap&lt;&gt;(&quot;Key Generators collection&quot;);
+ /**
+   * 用于存储sql片段
+   */
+  protected final Map&lt;String, XNode&gt; sqlFragments = new StrictMap&lt;&gt;(&quot;XML fragments parsed from previous mappers&quot;);</code></pre>
+<p>为什么要使用<code>StricMap</code>完成以上信息的存储，那取决于<code>StricMap</code>的<code>put()</code>方法的一些特性，具体如下所示：</p>
+<pre><code class="java"> public V put(String key, V value) {
+      //如果检测到重复的key直接抛出异常
+      if (containsKey(key)) {
+        throw new IllegalArgumentException(name + &quot; already contains value for &quot; + key
+            + (conflictMessageProducer == null ? &quot;&quot; : conflictMessageProducer.apply(super.get(key), value)));
+      }
+      //如果没有重复的key则添加key以及value
+      //同时根据key产生shortKey
+      if (key.contains(&quot;.&quot;)) {
+        //按照“.”将key切分成数组，然后将数组的最后一项作为shortKey
+        final String shortKey = getShortName(key);
+        //如果不包含指定shortKey,则添加该键值对
+        if (super.get(shortKey) == null) {
+          super.put(shortKey, value);
+        } else {
+          //如果该shortKey已经存在，则将value修改成Ambiguity对象
+          super.put(shortKey, (V) new Ambiguity(shortKey));
+        }
+      }
+      //如果没有重复的key则添加key以及value（这是全面）
+      return super.put(key, value);
+    }</code></pre>
+<p>在调用<code>StricMap.put()</code>方法的时候，首先要检查<code>key</code>是否存在，如果存在会直接报错。</p>
+<p>那么为什么在检查<code>key</code>存在之后就直接报错呢？原因如下所示：</p>
+<ol>
+<li><p>传入的<code>key</code>等于调用<code>builderAssistant.applyCurrentNamespace(id, false)</code>返回的值，在调用<code>builderAssistant.applyCurrentNamespace()</code>方法参入的<code>id</code>是节点的<code>id</code>，例如：<code>whereSqlElement</code>就是传入的<code>id</code>值。</p>
+<pre><code class="xml">&lt;sql id=&quot;whereSqlElement&quot;&gt;
+    where blog_id = ${idValue}
+  &lt;/sql&gt;</code></pre>
+<p>因为同一个<code>Mapper.xml</code>中，不用有<code>id</code>相同的标签，如上代码块，而万一<code>Mapper</code>配置文件中真的有两段一样的代码，就应该提前报错告诉开发人员去更改，所以<code>StricMap.put()</code>中的首先检测<code>key</code>是否存在，不存在就直接报错。</p>
+</li>
+<li><p><code>StricMap.put()</code>会向集合中加入两条数据，一条是全名<code>key</code>，一条是<code>shorKey</code>名。</p>
+</li>
+</ol>
+
             <hr>
           </div>
           <br>

@@ -245,24 +245,24 @@ vim /etc/hosts13.229.188.59 github.com
     
       <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-IlmbcN.jpg" srcset="undefined" alt="Mybatis初始化(二)——5.构建语句" class="img-fluid rounded z-depth-3 index-thumbnails">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-IlmbcN.jpg" srcset="undefined" alt="Mybatis初始化(二)——4.构建语句" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
       </div>
     
     <div class="col-12 col-md-8 m-auto">
       <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html">
-        <p class="h4 index-header">Mybatis初始化(二)——5.构建语句</p>
+        <p class="h4 index-header">Mybatis初始化(二)——4.构建语句</p>
         
         
           
         
         <div class="index-excerpt" >
           <div class="index-text mb-1">构建语句在进行解析Mapper映射配置文件的时候，还有一类比较重要的节点需要解析，也就是本节将要介绍的SQL节点。这些SQL节点主要用于定义SQL语句，它们不在有XMLMapperBuilder进行解析，而是有XMLStatementBuilder负责进行解析。
-下面开始分析其解析SQL相关节点的过程，XMLStatementBuilder.parseStatementNode()方法是解析SQL节点的入口函数，其具体实现如下所示，我将会按照图中标记的步骤分析：
+1.  XMLStatementBuilder下面开始分析其解析SQL相关节点的过程，XMLStatementBuilder.parseStatementNode()方法是解析SQL节点的入口函数，其具体实现如下所示，我将会按照图中标记的步骤分析：
 
 
 步骤1：首先判断Configuration.databaseId和select、update、insert、delete标签中配置的databaseId是否一致，如果一致就进行下面的步骤，如果不一致就直接跳出，说白了就是：Mapper映射配置文件都会被加载，但是Mapper映射配置文件的节点有可能不会被解析，这些节点是select、update、insert、delete还有上节说的sql，涉及到的代码如下所示：
-    String id = context.getStringAttribute(&quot;id&quo</div>
+    String id = context.getStrin</div>
         </div>
       </a>
 

@@ -15,7 +15,7 @@
   <meta name="description" content="">
   <meta name="author" content="gnehcgnaw">
   <meta name="keywords" content="">
-  <title>Mybatis初始化(二)——5.构建语句 ~ BeatShadow&#39;s blog</title>
+  <title>Mybatis初始化(二)——4.构建语句 ~ BeatShadow&#39;s blog</title>
 
   <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css"  >
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css"  >
@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    454 字
+                    1.7k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      7 分钟
                   </span>&nbsp;
                 
 
@@ -161,11 +161,11 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="构建语句"><a href="#构建语句" class="headerlink" title="构建语句"></a>构建语句</h1><p>在进行解析Mapper映射配置文件的时候，还有一类比较重要的节点需要解析，也就是本节将要介绍的SQL节点。这些SQL节点主要用于定义SQL语句，它们不在有XMLMapperBuilder进行解析，而是有XMLStatementBuilder负责进行解析。</p>
-<p>下面开始分析其解析SQL相关节点的过程，XMLStatementBuilder.parseStatementNode()方法是解析SQL节点的入口函数，其具体实现如下所示，我将会按照图中标记的步骤分析：</p>
+            <h1 id="构建语句"><a href="#构建语句" class="headerlink" title="构建语句"></a>构建语句</h1><p>在进行解析Mapper映射配置文件的时候，还有一类比较重要的节点需要解析，也就是本节将要介绍的<code>SQL</code>节点。这些<code>SQL</code>节点主要用于定义<code>SQL</code>语句，它们不在有<code>XMLMapperBuilder</code>进行解析，而是有<code>XMLStatementBuilder</code>负责进行解析。</p>
+<h1 id="1-XMLStatementBuilder"><a href="#1-XMLStatementBuilder" class="headerlink" title="1.  XMLStatementBuilder"></a>1.  XMLStatementBuilder</h1><p>下面开始分析其解析<code>SQL</code>相关节点的过程，<code>XMLStatementBuilder.parseStatementNode()</code>方法是解析<code>SQL</code>节点的入口函数，其具体实现如下所示，我将会按照图中标记的步骤分析：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-4smjMO.png!github_blog" srcset="undefined" alt=""></p>
 <hr>
-<p><strong>步骤1：</strong>首先判断Configuration.databaseId和select、update、insert、delete标签中配置的databaseId是否一致，如果一致就进行下面的步骤，如果不一致就直接跳出，说白了就是：Mapper映射配置文件都会被加载，但是Mapper映射配置文件的节点有可能不会被解析，这些节点是select、update、insert、delete还有上节说的sql，涉及到的代码如下所示：</p>
+<p><strong>步骤1：</strong>首先判断<code>Configuration.databaseId</code>和<code>select</code>、<code>update</code>、<code>insert</code>、<code>delete</code>标签中配置的<code>databaseId</code>是否一致，如果一致就进行下面的步骤，如果不一致就直接跳出，说白了就是：<code>Mapper</code>映射配置文件都会被加载，但是<code>Mapper</code>映射配置文件的节点有可能不会被解析，这些节点是<code>select</code>、<code>update</code>、<code>insert</code>、<code>delete</code>还有上节说的<code>sql</code>，涉及到的代码如下所示：</p>
 <pre><code class="java">    String id = context.getStringAttribute(&quot;id&quot;);
     String databaseId = context.getStringAttribute(&quot;databaseId&quot;);
 
@@ -173,7 +173,7 @@
       return;
     }</code></pre>
 <hr>
-<p><strong>步骤二：</strong>获取节点名称，然后跟枚举类SqlCommand中的属性进行比较，返回指定枚举值的对象，SqlCommand代码如下所示：</p>
+<p><strong>步骤二、步骤三：</strong>获取节点名称，然后跟枚举类<code>SqlCommand</code>中的属性进行比较，返回指定枚举值的对象，<code>SqlCommand</code>代码如下所示：</p>
 <pre><code class="java">/**
  * SQL命令的类型
  * @author Clinton Begin
@@ -188,13 +188,139 @@ public enum SqlCommandType {
     //拿nodeName和SqlCommendType中的枚举类型比较，然后符合的值
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));</code></pre>
 <hr>
-<p><strong>步骤三：</strong>解析节点中的flushCache、useCache、resultOrdered属性，涉及到的代码如下所示：</p>
+<p><strong>步骤四：</strong>解析节点中的<code>flushCache</code>、<code>useCache</code>、<code>resultOrdered</code>属性，涉及到的代码如下所示：</p>
 <pre><code class="java">    boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
     boolean flushCache = context.getBooleanAttribute(&quot;flushCache&quot;, !isSelect);
     boolean useCache = context.getBooleanAttribute(&quot;useCache&quot;, isSelect);
     boolean resultOrdered = context.getBooleanAttribute(&quot;resultOrdered&quot;, false);</code></pre>
-<p>这段代码看着稀松平常，但是我看到了代码艺术，</p>
-<script src="https://gist.github.com/gnehcgnaw/372061ba461531824d78f2f04bfc2502.js"></script>
+<p>这段代码看着稀松平常，但是我看到了代码艺术。</p>
+<p><strong>步骤五：</strong>在解析语句之前，先创建<code>XMLIncludeTransformer</code>对象，利用<code>XMLIncluderTransformer.appleIncludes()</code>去解析<code>&lt;include&gt;</code>节点。</p>
+<pre><code class="java">// Include Fragments before parsing
+    //创建一个XMLIncludeTransformer对象
+    XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
+    //处理include标签：找到对应的&lt;sql&gt;标签，将&lt;sql&gt;标签中的占位符替换成&lt;include&gt;节点下&lt;property&gt;的name对应的属性值，然后用sql片段的语句替换include标签
+    includeParser.applyIncludes(context.getNode());</code></pre>
+<h2 id="1-1-解析-lt-include-gt-节点"><a href="#1-1-解析-lt-include-gt-节点" class="headerlink" title="1.1. 解析&lt;include&gt;节点"></a>1.1. 解析<code>&lt;include&gt;</code>节点</h2><p>在解析<code>SQL</code>节点之前，首先通过<code>XMLIncloudeTransformer</code>解析<code>SQL</code>语句中的<code>&lt;include&gt;</code>节点，该解析过程在<code>XMLIncludeTransformer.applyIncluders()</code>方法实现的：</p>
+<pre><code class="java">public void applyIncludes(Node source) {
+    Properties variablesContext = new Properties();
+    //获取mybatis-config.xml中，&lt;properties&gt;节点中定义的变量集合
+    Properties configurationVariables = configuration.getVariables();
+    /*
+     *  下面的一行代码其实就是说，如果configurationVariables不为null，那么就把值赋给variablesContext。
+     *  if(configurationVariables!=null){
+     *      variablesContext.putAll(configurationVariables)
+     *  }
+     */
+    Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
+    //处理&lt;include&gt;节点
+    applyIncludes(source, variablesContext, false);
+  }</code></pre>
+<p>下面是处理<code>&lt;include&gt;</code>节点的<code>applyIncludes()</code>方法重载：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-OobCWc.png!github_blog" srcset="undefined" alt=""></p>
+<p>通过示例去解读代码，具体示例如下所示：</p>
+<pre><code class="xml">  &lt;select id=&quot;selectBlogList&quot; resultType=&quot;map&quot;&gt;
+    select *
+    &lt;include refid=&quot;fromSqlElement&quot;&gt;
+      &lt;property name=&quot;tablename&quot; value=&quot;tb_blog&quot;/&gt;
+    &lt;/include&gt;
+  &lt;/select&gt;
+
+  &lt;sql id=&quot;fromSqlElement&quot;&gt;
+    from ${tablename}
+    &lt;include refid=&quot;whereSqlElement&quot;&gt;
+      &lt;property name=&quot;idValue&quot; value=&quot;1&quot;/&gt;
+    &lt;/include&gt;
+  &lt;/sql&gt;
+
+  &lt;sql id=&quot;whereSqlElement&quot;&gt;
+    where blog_id = ${idValue}
+  &lt;/sql&gt;</code></pre>
+<p>从<strong>步骤一</strong>开始，因为当前解析的是<select>节点，并且<select>节点是一个Node.ElEMENT_NODE，所以会进入到<strong>步骤二</strong>；</p>
+<p>然后进行<strong>步骤四</strong>，判断include=true&amp;&amp;variableContext!=null是否成立，因为此时的include是false，所以不成立，这时候程序直接进入<strong>步骤五</strong>；</p>
+<p><strong>步骤五</strong>是获取所有的子节点，然后遍历，一个个从<strong>步骤一</strong>执行；</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-fsJ0OC.png!github_blog" srcset="undefined" alt=""></p>
+<p>当前<select id="selectBlogList" resultType="map">下是有三个节点的，分别是：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-ExtY7N.png!github_blog" srcset="undefined" alt=""></p>
+<p><strong>故：</strong></p>
+<hr>
+<p>第一次循环去执行<strong>步骤一</strong>的是：节点值为<code>\n select \n</code>的节点；</p>
+<ul>
+<li>此时程序会进入步骤三，因为included=false，所以直接跳出；</li>
+</ul>
+<hr>
+<p>第二次循环去执行步骤一的是：节点<include>，<strong>因为节点的名称等于include，所以会进入步骤一中的代码</strong>；</p>
+<p><strong>步骤六：</strong>获取<include>上的refid属性的值，然后把这个值作为参数调用findSqlFragment()方法，获取refid值相应的<sql>节点对象，此时获取的节点对象如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-NZdXAk.png!github_blog" srcset="undefined" alt=""></p>
+<p>其实就是XML中的以下代码段：</p>
+<pre><code>&lt;sql id=&quot;fromSqlElement&quot;&gt;
+    from ${tablename}
+    &lt;include refid=&quot;whereSqlElement&quot;&gt;
+      &lt;property name=&quot;idValue&quot; value=&quot;1&quot;/&gt;
+    &lt;/include&gt;
+  &lt;/sql&gt;</code></pre><p>接着，执行步骤七，通过调用getVariablesContext()方法获取<include>标签下的<property>的name和value，并将其添加到variableContext；</p>
+<p>步骤八：将included设置为ture，表示<select>下<include>下<property>的属性值已经解析，接着会调到步骤四，执行步骤4中的代码，然后使用property中的属性值替换，如下图所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-7Q5PiI.png!github_blog" srcset="undefined" alt=""></p>
+<p>最后最后一个值也被解析出来：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-gG5r7C.png!github_blog" srcset="undefined" alt=""></p>
+<p>说白了<include>和<sql>节点可以配合使用，多层嵌套，实现更加复杂的SQL片段的重用，这样的话，解析过程就会递归更多层，流程也会变得更加复杂， 但是本质和上述分析是一样的，我总结出来流程如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-12-pmP2cc.jpg!github_blog" srcset="undefined" alt=""></p>
+<p>最后处理完的select节点中的语句的样子，如下所示：</p>
+<pre><code class="sql">      select *
+
+    from tb_blog
+
+    where blog_id = #{id}</code></pre>
+<h2 id="1-2-解析-lt-selectKey-gt-节点"><a href="#1-2-解析-lt-selectKey-gt-节点" class="headerlink" title="1.2. 解析&lt;selectKey&gt;节点"></a>1.2. 解析<code>&lt;selectKey&gt;</code>节点</h2><p>在<insert>、<update>节点中可以定义<selectKey>节点来解决主键自增问题，<selectKey>节点对应的KeyGenerator接口会在后面详细介绍，这里关注<selectKey>节点的解析。</p>
+<p>XMLStatementBuilder.processSelectKeyNodes()方法负责解析SQL节点中的<selectKey>子节点，具体代码如下所示：</p>
+<pre><code class="java">  private void processSelectKeyNodes(String id, Class&lt;?&gt; parameterTypeClass, LanguageDriver langDriver) {
+    //获取所有的selectKey节点
+    List&lt;XNode&gt; selectKeyNodes = context.evalNodes(&quot;selectKey&quot;);
+    //解析&lt;selectKey&gt;节点
+    if (configuration.getDatabaseId() != null) {
+      parseSelectKeyNodes(id, selectKeyNodes, parameterTypeClass, langDriver, configuration.getDatabaseId());
+    }
+    parseSelectKeyNodes(id, selectKeyNodes, parameterTypeClass, langDriver, null);
+    //移除&lt;selectKey&gt;节点
+    removeSelectKeyNodes(selectKeyNodes);
+  }</code></pre>
+<p>在parseSelectKeyNode()方法中，首先读取<selectKey>节点的一系列属性，然后调用LanguageDriver.createSqlSource()方法创建对应的SqlSource对象，最后创建MapperStatement对象，并添加到Configuraiton.mappedStatements集合中保存。parseSelectKeyNode()方法的具体实现如下：</p>
+<pre><code class="java"> private void parseSelectKeyNode(String id, XNode nodeToHandle, Class&lt;?&gt; parameterTypeClass, LanguageDriver langDriver, String databaseId) {
+
+    //获取&lt;selectKey&gt;节点下的resultType、statementType、keyProperty、keyColumn、order属性的值
+    String resultType = nodeToHandle.getStringAttribute(&quot;resultType&quot;);
+    Class&lt;?&gt; resultTypeClass = resolveClass(resultType);
+    StatementType statementType = StatementType.valueOf(nodeToHandle.getStringAttribute(&quot;statementType&quot;, StatementType.PREPARED.toString()));
+    String keyProperty = nodeToHandle.getStringAttribute(&quot;keyProperty&quot;);
+    String keyColumn = nodeToHandle.getStringAttribute(&quot;keyColumn&quot;);
+    boolean executeBefore = &quot;BEFORE&quot;.equals(nodeToHandle.getStringAttribute(&quot;order&quot;, &quot;AFTER&quot;));
+
+    //defaults
+    //设置一些MappedStatement对象需要的默认配置，
+    boolean useCache = false;
+    boolean resultOrdered = false;
+    KeyGenerator keyGenerator = NoKeyGenerator.INSTANCE;
+    Integer fetchSize = null;
+    Integer timeout = null;
+    boolean flushCache = false;
+    String parameterMap = null;
+    String resultMap = null;
+    ResultSetType resultSetTypeEnum = null;
+    //通过LanguageDriver.createSqlSource()方法生成SqlSource
+    SqlSource sqlSource = langDriver.createSqlSource(configuration, nodeToHandle, parameterTypeClass);
+    SqlCommandType sqlCommandType = SqlCommandType.SELECT;
+    //然后把解析出来的&lt;selectKey&gt;下面的语句构建成MappedStatement对象
+    builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
+        fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
+        resultSetTypeEnum, flushCache, useCache, resultOrdered,
+        keyGenerator, keyProperty, keyColumn, databaseId, langDriver, null);
+
+    id = builderAssistant.applyCurrentNamespace(id, false);
+
+    MappedStatement keyStatement = configuration.getMappedStatement(id, false);
+    //创建&lt;selectKey&gt;节点对应的KeyGenerator，添加到Configuration.keyGenerators集合中
+    configuration.addKeyGenerator(id, new SelectKeyGenerator(keyStatement, executeBefore));
+  }</code></pre>
+
             <hr>
           </div>
           <br>
@@ -369,7 +495,7 @@ public enum SqlCommandType {
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Mybatis初始化(二)——5.构建语句&nbsp;",
+        "Mybatis初始化(二)——4.构建语句&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

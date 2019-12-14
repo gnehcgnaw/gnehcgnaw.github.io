@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    1.7k 字
+                    1.8k 字
                   </span>&nbsp;
                 
 
@@ -270,7 +270,17 @@ public enum SqlCommandType {
     from tb_blog
 
     where blog_id = #{id}</code></pre>
-<h2 id="1-2-解析-lt-selectKey-gt-节点"><a href="#1-2-解析-lt-selectKey-gt-节点" class="headerlink" title="1.2. 解析&lt;selectKey&gt;节点"></a>1.2. 解析<code>&lt;selectKey&gt;</code>节点</h2><p>在<insert>、<update>节点中可以定义<selectKey>节点来解决主键自增问题，<selectKey>节点对应的KeyGenerator接口会在后面详细介绍，这里关注<selectKey>节点的解析。</p>
+<h2 id="1-2-解析-lt-selectKey-gt-节点"><a href="#1-2-解析-lt-selectKey-gt-节点" class="headerlink" title="1.2. 解析&lt;selectKey&gt;节点"></a>1.2. 解析<code>&lt;selectKey&gt;</code>节点</h2><p><selectKey>节点可以定义的属性和子节点，如下所示：</p>
+<pre><code class="dtd">&lt;!ELEMENT selectKey (#PCDATA | include | trim | where | set | foreach | choose | if | bind)*&gt;
+&lt;!ATTLIST selectKey
+resultType CDATA #IMPLIED
+statementType (STATEMENT|PREPARED|CALLABLE) #IMPLIED
+keyProperty CDATA #IMPLIED
+keyColumn CDATA #IMPLIED
+order (BEFORE|AFTER) #IMPLIED
+databaseId CDATA #IMPLIED
+&gt;</code></pre>
+<p>在<insert>、<update>节点中可以定义<selectKey>节点来解决主键自增问题，<selectKey>节点对应的KeyGenerator接口会在后面详细介绍，这里关注<selectKey>节点的解析。</p>
 <p>XMLStatementBuilder.processSelectKeyNodes()方法负责解析SQL节点中的<selectKey>子节点，具体代码如下所示：</p>
 <pre><code class="java">  private void processSelectKeyNodes(String id, Class&lt;?&gt; parameterTypeClass, LanguageDriver langDriver) {
     //获取所有的selectKey节点

@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    4.4k 字
+                    4.5k 字
                   </span>&nbsp;
                 
 
@@ -726,7 +726,8 @@ private final ParamNameResolver paramNameResolver;</code></pre>
       return paramNameResolver.getNamedParams(args);
     }
 </code></pre>
-<h2 id="4-3-ParamNameResolver"><a href="#4-3-ParamNameResolver" class="headerlink" title="4.3. ParamNameResolver"></a>4.3. ParamNameResolver</h2>
+<h2 id="4-3-execute"><a href="#4-3-execute" class="headerlink" title="4.3. execute()"></a>4.3. execute()</h2><p>分析完MapperMethod中定义的内部类之后，回到MapperMethod继续分析。MapperMethod的核心方式execute()方法，它会根据SQL语句的类型调用SqlSession对应的方法完成数据库操作。SqlSession是Mybatis的核心组件之一，其具体实现后面会详细介绍，这里暂时只需要知道它负责完成数据库操作即可。MapperMethod.execute()方法的具体实现如下：</p>
+
             <hr>
           </div>
           <br>

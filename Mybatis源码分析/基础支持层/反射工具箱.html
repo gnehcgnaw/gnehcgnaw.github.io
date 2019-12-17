@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      26 分钟
+                      27 分钟
                   </span>&nbsp;
                 
 
@@ -956,7 +956,12 @@ public class MetaClassTest {
   }
 }
 </code></pre>
-<h2 id="2-6-ObjectWrapper"><a href="#2-6-ObjectWrapper" class="headerlink" title="2.6. ObjectWrapper"></a>2.6. ObjectWrapper</h2><h2 id="2-7-MetaObject"><a href="#2-7-MetaObject" class="headerlink" title="2.7. MetaObject"></a>2.7. MetaObject</h2><h2 id="2-8-ParamNameResolver"><a href="#2-8-ParamNameResolver" class="headerlink" title="2.8. ParamNameResolver"></a>2.8. ParamNameResolver</h2><p><code>ParamNameResolver</code>是参数名称解析器，把传入的实参，解析成对象，分为两种：一种是不加<code>@Param</code>注解的；一种是加了注解的，<code>Mybatis</code>源码中的使用场景在后续介绍。</p>
+<h2 id="2-6-ObjectWrapper"><a href="#2-6-ObjectWrapper" class="headerlink" title="2.6. ObjectWrapper"></a>2.6. ObjectWrapper</h2><h2 id="2-7-MetaObject"><a href="#2-7-MetaObject" class="headerlink" title="2.7. MetaObject"></a>2.7. MetaObject</h2><h2 id="2-8-ParamNameResolver"><a href="#2-8-ParamNameResolver" class="headerlink" title="2.8. ParamNameResolver"></a>2.8. ParamNameResolver</h2><p><code>ParamNameResolver</code>是参数名称解析器，把传入的实参，解析成对象，分为两种：一种是不加<code>@Param</code>注解的；一种是加了注解的，<code>Mybatis</code>源码中的使用场景在后续介绍，使用的类有：</p>
+<ol>
+<li><a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/binding%E6%A8%A1%E5%9D%97.html#4-2-3-convertArgsToSqlCommandParam" target="_blank" rel="noopener">MapperMethod</a></li>
+<li>ProviderSqlSource</li>
+<li>Jdbc3KeyGenerator</li>
+</ol>
 <pre><code class="java">/**
  * 参数名称解析器
  */

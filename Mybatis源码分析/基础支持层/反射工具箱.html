@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    4.4k 字
+                    5.1k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      19 分钟
+                      23 分钟
                   </span>&nbsp;
                 
 
@@ -584,7 +584,108 @@ class Items{
     Type returnType = TypeParameterResolver.resolveReturnType(method, type);
     getTypes.put(name, typeToClass(returnType));
   }</code></pre>
-<h2 id="2-2-TypeParameterResolver"><a href="#2-2-TypeParameterResolver" class="headerlink" title="2.2. TypeParameterResolver"></a>2.2. TypeParameterResolver</h2><h2 id="2-3-ObjectFactory"><a href="#2-3-ObjectFactory" class="headerlink" title="2.3. ObjectFactory"></a>2.3. ObjectFactory</h2><h2 id="2-4-Property工具集"><a href="#2-4-Property工具集" class="headerlink" title="2.4. Property工具集"></a>2.4. Property工具集</h2><p>本小节主要介绍反射模块中使用到的三个属性工具类，分别是<code>PropertyTokenizer</code>、<code>PropertyNamer</code>和<code>PropertyCopier</code>。</p>
+<h2 id="2-2-TypeParameterResolver"><a href="#2-2-TypeParameterResolver" class="headerlink" title="2.2. TypeParameterResolver"></a>2.2. TypeParameterResolver</h2><h2 id="2-3-ObjectFactory"><a href="#2-3-ObjectFactory" class="headerlink" title="2.3. ObjectFactory"></a>2.3. ObjectFactory</h2><p><code>Mybatis</code>中有很多模块会使用到<code>ObjectFactory</code>接口，该接口提供了多个<code>create()</code>方法的重载，通过这些方法可以创建指定类型的对象，<code>ObjectFactory</code>接口的定义如下所示：</p>
+<pre><code class="java">/**
+ * Mybatis中有很多模块会使用到ObjectFactory接口，该接口提供了多个create()方法的重载，
+ * 通过这些方create()方法可以创建指定类型的对象。
+ * @see DefaultObjectFactory
+ * MyBatis uses an ObjectFactory to create all needed new Objects.
+ *
+ * @author Clinton Begin
+ */
+public interface ObjectFactory {
+
+  /**
+   * 设置配置信息
+   * Sets configuration properties.
+   * @param properties configuration properties
+   */
+  default void setProperties(Properties properties) {
+    /**
+     *   空操纵：说白了，如果要继承ObjectFactory，不仅要定义Properties 属性，还有再提供一个getProperties()的方法
+     *   e.g. {@link red.reksai.mybatissample.objectfactory.ExampleObjectFactory}（我自定义的测试用例）
+     *   {@link org.apache.ibatis.submitted.global_variables_defaults.SupportClasses.CustomObjectFactory}(官方测试用例)
+     *   同时在mybatis-config.xml添加如下配置：
+     *   &lt;objectFactory type=&quot;org.mybatis.example.ExampleObjectFactory&quot;&gt;
+     *       &lt;property name=&quot;someProperty&quot; value=&quot;100&quot;/&gt;
+     *   &lt;/objectFactory&gt;
+     *   这样可以拿到property的值。
+     */
+    // NOP
+  }
+
+  /**
+   * 通过无参构造器创建指定类的对象
+   * Creates a new object with default constructor.
+   * @param type Object type
+   * @return
+   */
+  &lt;T&gt; T create(Class&lt;T&gt; type);
+
+  /**
+   * 根据参数列表，从指定的类型中选择合适的构造器创建对象
+   * Creates a new object with the specified constructor and params.
+   * @param type Object type
+   * @param constructorArgTypes Constructor argument types
+   * @param constructorArgs Constructor argument values
+   * @return
+   */
+  &lt;T&gt; T create(Class&lt;T&gt; type, List&lt;Class&lt;?&gt;&gt; constructorArgTypes, List&lt;Object&gt; constructorArgs);
+
+  /**
+   * 检测指定类型是否是集合类型，主要处理java.util.Collection及其子类
+   * Returns true if this object can have a set of other objects.
+   * It&#39;s main purpose is to support non-java.util.Collection objects like Scala collections.
+   *
+   * @param type Object type
+   * @return whether it is a collection or not
+   * @since 3.1.0
+   */
+  &lt;T&gt; boolean isCollection(Class&lt;T&gt; type);
+
+}
+</code></pre>
+<p><code>DefaultObjectFactory</code>是<code>Mybatis</code>提供的<code>ObjectFactory</code>接口的唯一实现，它是一个反射工厂，其<code>create()</code>方法通过调用<code>instanceClass()</code>方法实现。<code>DefaultObjectFactory.instanceClass()</code>方法会根据传入的参数列表选择合适的构造函数实例化对象，具体实现如下：</p>
+<pre><code class="java">private  &lt;T&gt; T instantiateClass(Class&lt;T&gt; type, List&lt;Class&lt;?&gt;&gt; constructorArgTypes, List&lt;Object&gt; constructorArgs) {
+    try {
+      Constructor&lt;T&gt; constructor;
+      //通过无参构造器创建对象
+      if (constructorArgTypes == null || constructorArgs == null) {
+        constructor = type.getDeclaredConstructor();
+        try {
+          return constructor.newInstance();
+        } catch (IllegalAccessException e) {
+          if (Reflector.canControlMemberAccessible()) {
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+          } else {
+            throw e;
+          }
+        }
+      }
+      //根据指定的参数列表查找构造函数，并实例化对象
+      constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[constructorArgTypes.size()]));
+      try {
+        return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
+      } catch (IllegalAccessException e) {
+        if (Reflector.canControlMemberAccessible()) {
+          constructor.setAccessible(true);
+          return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
+        } else {
+          throw e;
+        }
+      }
+    } catch (Exception e) {
+      String argTypes = Optional.ofNullable(constructorArgTypes).orElseGet(Collections::emptyList)
+          .stream().map(Class::getSimpleName).collect(Collectors.joining(&quot;,&quot;));
+      String argValues = Optional.ofNullable(constructorArgs).orElseGet(Collections::emptyList)
+          .stream().map(String::valueOf).collect(Collectors.joining(&quot;,&quot;));
+      throw new ReflectionException(&quot;Error instantiating &quot; + type + &quot; with invalid types (&quot; + argTypes + &quot;) or values (&quot; + argValues + &quot;). Cause: &quot; + e, e);
+    }
+  }
+</code></pre>
+<p>除了使用<code>Mybatis</code>提供的<code>DefaultObjectFactory</code>实现，我们还可以在<code>mybatis-config.xml</code>配置文件中指定自定义的<code>ObjectFactory</code>接口实现类，从而实现功能上的扩展，在后面介绍<code>Mybatis</code>初始化流程的时候，还会提到该扩展点。</p>
+<h2 id="2-4-Property工具集"><a href="#2-4-Property工具集" class="headerlink" title="2.4. Property工具集"></a>2.4. Property工具集</h2><p>本小节主要介绍反射模块中使用到的三个属性工具类，分别是<code>PropertyTokenizer</code>、<code>PropertyNamer</code>和<code>PropertyCopier</code>。</p>
 <hr>
 <p><strong>此段我暂时也不知道怎么去解释，也许是后续学习能解释这个问题吧。</strong></p>
 <p>在使用<code>Mybatis</code>的过程中，我们会经常碰到一些属性表达式，例如，在查询某用户（<code>User</code>）的订单（<code>Order</code>）的结果集如下表所示：</p>

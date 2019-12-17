@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.2k 字
+                    4.4k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      14 分钟
+                      20 分钟
                   </span>&nbsp;
                 
 
@@ -572,8 +572,161 @@ public interface CommentMapper {
    * Mapper接口中对应方法的相关新
    */
   private final MethodSignature method;</code></pre>
-<p>SqlCommand是MapperMethod中定义的静态内部类，它使用了name字段记录SQL语句的名称，使用type字段（SqlCommandType类型）记录了SQL语句的类型。SqlCommandType是枚举类型，有效值UNKNOWN、INSERT、UPDATE、DELETE、SELECT、PLUSH。</p>
-
+<h2 id="4-1-SqlCommand"><a href="#4-1-SqlCommand" class="headerlink" title="4.1. SqlCommand"></a>4.1. SqlCommand</h2><p><code>SqlCommand</code>是<code>MapperMethod</code>中定义的静态内部类，它使用了<code>name</code>字段记录<code>SQL</code>语句的名称，使用type字段（<code>SqlCommandType</code>类型）记录了<code>SQL</code>语句的类型。<code>SqlCommandType</code>是枚举类型，有效值<code>UNKNOWN</code>、<code>INSERT</code>、<code>UPDATE</code>、<code>DELETE</code>、<code>SELECT</code>、<code>PLUSH</code>。<code>SqlCommand</code>的构造方法会初始化<code>name</code>字段和<code>type</code>字段，代码如下：</p>
+<pre><code class="java">  public SqlCommand(Configuration configuration, Class&lt;?&gt; mapperInterface, Method method) {
+       //获取方法的名称
+      final String methodName = method.getName();
+      //获取声明类
+      final Class&lt;?&gt; declaringClass = method.getDeclaringClass();
+      //获取对应的MapperStatement对象
+      MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
+          configuration);
+      //判断MappedStatement对象是否为空
+      if (ms == null) {
+        //判断当前方法上是不是有@Flush注解
+        if (method.getAnnotation(Flush.class) != null) {
+          name = null;
+          type = SqlCommandType.FLUSH;
+        } else {
+          throw new BindingException(&quot;Invalid bound statement (not found): &quot;
+              + mapperInterface.getName() + &quot;.&quot; + methodName);
+        }
+      } else {
+        name = ms.getId();
+        type = ms.getSqlCommandType();
+        if (type == SqlCommandType.UNKNOWN) {
+          throw new BindingException(&quot;Unknown execution method for: &quot; + name);
+        }
+      }
+    }</code></pre>
+<p><strong>以上代码有个作用于Method的注解@Flush，这个注解的作用在后续进行讲解。</strong></p>
+<h2 id="4-2-MethodSignature"><a href="#4-2-MethodSignature" class="headerlink" title="4.2. MethodSignature"></a>4.2. MethodSignature</h2><p>MethodSignature也是MapperMethod中定义的内部类，其中封装了Mapper接口中定义的方法的相关信息，MethodSignature核心字段如下所示：</p>
+<pre><code class="java">/**
+ * 返回值类型是否为Collection类型或者是数组类型
+ */
+private final boolean returnsMany;
+/**
+ * 返回值类型是否是Map类型
+ */
+private final boolean returnsMap;
+/**
+ * 返回值类型是否为Void类型
+ */
+private final boolean returnsVoid;
+/**
+ * 返回值是否是Cursor类型
+ */
+private final boolean returnsCursor;
+/**
+ * 返回值是否是Optional类型
+ */
+private final boolean returnsOptional;
+/**
+ * 返回值类型
+ */
+private final Class&lt;?&gt; returnType;
+/**
+ * 如果返回值类型是Map,则该字段记录了作为key的列名
+ */
+private final String mapKey;
+/**
+ * 用来标记该方法参数列表中ResultHandler类型参数的位置
+ */
+private final Integer resultHandlerIndex;
+/**
+ * 用来标记该方法参数列表中RowBounds类型参数位置
+ */
+private final Integer rowBoundsIndex;
+/**
+ * 该方法对应的ParamNameResolver对象
+ */
+private final ParamNameResolver paramNameResolver;</code></pre>
+<p>在MethodSignature的构造函数中会解析相应的Method对象，并初始化上述字段，具体代码如下所示：</p>
+<pre><code class="java"> public MethodSignature(Configuration configuration, Class&lt;?&gt; mapperInterface, Method method) {
+      //解析方法的返回值类型
+      Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
+      //初始话MethodSignature的字段
+      if (resolvedReturnType instanceof Class&lt;?&gt;) {
+        this.returnType = (Class&lt;?&gt;) resolvedReturnType;
+      } else if (resolvedReturnType instanceof ParameterizedType) {
+        this.returnType = (Class&lt;?&gt;) ((ParameterizedType) resolvedReturnType).getRawType();
+      } else {
+        this.returnType = method.getReturnType();
+      }
+      //初始化returnsVoid、returnsMany、returnsCursor、returnsOptional字段
+      this.returnsVoid = void.class.equals(this.returnType);
+      this.returnsMany = configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray();
+      this.returnsCursor = Cursor.class.equals(this.returnType);
+      this.returnsOptional = Optional.class.equals(this.returnType);
+      //若Method对应的方法的返回值是Map且指定了@MapKey注解，则使用getMapKey()方法处理
+      this.mapKey = getMapKey(method);
+      this.returnsMap = this.mapKey != null;
+      //初始话rowBoundsIndex
+      this.rowBoundsIndex = getUniqueParamIndex(method, RowBounds.class);
+      //初始化resultHandlerIndex
+      this.resultHandlerIndex = getUniqueParamIndex(method, ResultHandler.class);
+      //创建ParamNameResolver对象
+      this.paramNameResolver = new ParamNameResolver(configuration, method);
+    }</code></pre>
+<p>以上代码涉及到如下几个重要方法或对象：</p>
+<h3 id="4-2-1-getMapKey"><a href="#4-2-1-getMapKey" class="headerlink" title="4.2.1. getMapKey()"></a>4.2.1. getMapKey()</h3><p><code>getMapKey()</code>的代码如下所示：</p>
+<pre><code class="java">  private String getMapKey(Method method) {
+      String mapKey = null;
+      //首先判断返回值类型是不是Map
+      if (Map.class.isAssignableFrom(method.getReturnType())) {
+        //是map
+        //看有没有MapKey注解
+        final MapKey mapKeyAnnotation = method.getAnnotation(MapKey.class);
+        if (mapKeyAnnotation != null) {
+          //有MapKey注解则返回，对应的值
+          mapKey = mapKeyAnnotation.value();
+        }
+      }
+      return mapKey;
+    }</code></pre>
+<p><code>@MapKey</code>作用于<code>Method</code>，在后续讲解中会涉及到，这里只做结果演示：</p>
+<pre><code class="java"> @Select(&quot;select author_id , author_username from tb_author where author_username = #{name} order by author_id desc&quot;)
+    Map selectAuthorByName(@Param(&quot;name&quot;)String name);</code></pre>
+<p>要查询的库，如下所示：</p>
+<p>![image-20191217105110828](/Users/gnehcgnaw/Library/Application Support/typora-user-images/image-20191217105110828.png)</p>
+<ol>
+<li><p>查询<code>authot_name=root</code>，那么可以用<code>map</code>接收结果集，因为只有一条，结果是：<code>{author_id=1, author_username=root}</code></p>
+</li>
+<li><p>现在在<code>selectAuthorByName()</code>方法上加上<code>@MapKey(&quot;author_name&quot;)</code>注解，同样还是查询<code>authot_name=root</code>，结果是：<code>{root={author_id=1, author_username=root}}</code>，可以看出<code>MapKey</code>的作用就是指定<code>map</code>的<code>key</code>，把结果集作为<code>value</code>。</p>
+</li>
+<li><p>查询<code>authot_name=lisi</code>，那么正常情况下结果集应该是个<code>List</code>，如果用<code>Map</code>接收会报一个结果集不唯一的异常，但是加上<code>@MapKey(&quot;author_name&quot;)</code>注解之后就不一样了，结果是：<code>{lisi={author_id=3, author_username=lisi}}</code>，我们发现返回值只有一条，说明结果集被覆盖了，因为是用<code>key</code>是<code>lisi</code>，根据<code>Map</code>的特性，<code>key</code>为<code>lisi</code>的数据只有一条。</p>
+</li>
+</ol>
+<p><strong>这里只是把这种现象演示出来，后面会涉及到如果方法上有<code>MapKey</code>标记，<code>Mybatis</code>是如何处理的？</strong></p>
+<h3 id="4-2-2-getUniqueParamIndex"><a href="#4-2-2-getUniqueParamIndex" class="headerlink" title="4.2.2.getUniqueParamIndex()"></a>4.2.2.getUniqueParamIndex()</h3><p><code>getUniqueParamIndex()</code>方法的主要功能是查找指定类型的参数在参数列表中的位置，如下：</p>
+<pre><code class="java">    private Integer getUniqueParamIndex(Method method, Class&lt;?&gt; paramType) {
+      Integer index = null;
+      final Class&lt;?&gt;[] argTypes = method.getParameterTypes();
+      //遍历MethodSignature对应方法的参数列表
+      for (int i = 0; i &lt; argTypes.length; i++) {
+        if (paramType.isAssignableFrom(argTypes[i])) {
+          if (index == null) {
+            //记录paramType类型参数在参数列表中的位置索引
+            index = i;
+          } else {
+            //RowBounds和ResultHandler类型的参数只能有一个，不能重复出现
+            throw new BindingException(method.getName() + &quot; cannot have multiple &quot; + paramType.getSimpleName() + &quot; parameters&quot;);
+          }
+        }
+      }
+      return index;
+    }</code></pre>
+<h3 id="4-2-3-convertArgsToSqlCommandParam"><a href="#4-2-3-convertArgsToSqlCommandParam" class="headerlink" title="4.2.3.convertArgsToSqlCommandParam()"></a>4.2.3.convertArgsToSqlCommandParam()</h3><p><code>MethodSignature</code>还提供了对应字段的<code>getter/setter</code>方法，其中<code>convertArgsToSqlCommandParam()</code>方法需要介绍一下：</p>
+<pre><code class="java">    /**
+     * 负责将agr[]数组（用户传入的实参列表）转化成SQL语句的参数列表，它是通过ParamNameResolver.getNamedParams()方法完成的。
+     * @param args
+     * @return
+     */
+    public Object convertArgsToSqlCommandParam(Object[] args) {
+      return paramNameResolver.getNamedParams(args);
+    }
+</code></pre>
+<h2 id="4-3-ParamNameResolver"><a href="#4-3-ParamNameResolver" class="headerlink" title="4.3. ParamNameResolver"></a>4.3. ParamNameResolver</h2>
             <hr>
           </div>
           <br>

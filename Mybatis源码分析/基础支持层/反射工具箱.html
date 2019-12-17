@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    5.1k 字
+                    5.8k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      23 分钟
+                      26 分钟
                   </span>&nbsp;
                 
 
@@ -956,7 +956,130 @@ public class MetaClassTest {
   }
 }
 </code></pre>
-<h2 id="2-6-ObjectWrapper"><a href="#2-6-ObjectWrapper" class="headerlink" title="2.6. ObjectWrapper"></a>2.6. ObjectWrapper</h2><h2 id="2-7-MetaObject"><a href="#2-7-MetaObject" class="headerlink" title="2.7. MetaObject"></a>2.7. MetaObject</h2>
+<h2 id="2-6-ObjectWrapper"><a href="#2-6-ObjectWrapper" class="headerlink" title="2.6. ObjectWrapper"></a>2.6. ObjectWrapper</h2><h2 id="2-7-MetaObject"><a href="#2-7-MetaObject" class="headerlink" title="2.7. MetaObject"></a>2.7. MetaObject</h2><h2 id="2-8-ParamNameResolver"><a href="#2-8-ParamNameResolver" class="headerlink" title="2.8. ParamNameResolver"></a>2.8. ParamNameResolver</h2><p><code>ParamNameResolver</code>是参数名称解析器，把传入的实参，解析成对象，分为两种：一种是不加<code>@Param</code>注解的；一种是加了注解的，<code>Mybatis</code>源码中的使用场景在后续介绍。</p>
+<pre><code class="java">/**
+ * 参数名称解析器
+ */
+public class ParamNameResolver {
+
+  /**
+   *   通用前缀，假如没有定义参数名称，最后在同一个方法的参数列表就是param1 、param2 一次类推。
+   */
+  public static final String GENERIC_NAME_PREFIX = &quot;param&quot;;
+
+  /**
+   * 参数的名称是有顺序的
+   * &lt;p&gt;
+   * The key is the index and the value is the name of the parameter.&lt;br /&gt;
+   * The name is obtained from {@link Param} if specified. When {@link Param} is not specified,
+   * the parameter index is used. Note that this index could be different from the actual index
+   * when the method has special parameters (i.e. {@link RowBounds} or {@link ResultHandler}).
+   * &lt;/p&gt;
+   * &lt;ul&gt;
+   * &lt;li&gt;aMethod(@Param(&quot;M&quot;) int a, @Param(&quot;N&quot;) int b) -&amp;gt; {{0, "M"}, {1, "N"}}&lt;/li&gt;
+   * &lt;li&gt;aMethod(int a, int b) -&amp;gt; {{0, "0"}, {1, "1"}}&lt;/li&gt;
+   * &lt;li&gt;aMethod(int a, RowBounds rb, int b) -&amp;gt; {{0, "0"}, {2, "1"}}&lt;/li&gt;
+   * &lt;/ul&gt;
+   */
+  private final SortedMap&lt;Integer, String&gt; names;
+
+  /**
+   *   参数是否被注解注释
+   */
+  private boolean hasParamAnnotation;
+
+  public ParamNameResolver(Configuration config, Method method) {
+    final Class&lt;?&gt;[] paramTypes = method.getParameterTypes();
+    final Annotation[][] paramAnnotations = method.getParameterAnnotations();
+    final SortedMap&lt;Integer, String&gt; map = new TreeMap&lt;&gt;();
+    int paramCount = paramAnnotations.length;
+    // get names from @Param annotations
+    for (int paramIndex = 0; paramIndex &lt; paramCount; paramIndex++) {
+      if (isSpecialParameter(paramTypes[paramIndex])) {
+        // skip special parameters
+        continue;
+      }
+      String name = null;
+      for (Annotation annotation : paramAnnotations[paramIndex]) {
+        if (annotation instanceof Param) {
+          hasParamAnnotation = true;
+          name = ((Param) annotation).value();
+          break;
+        }
+      }
+      if (name == null) {
+        // @Param was not specified.
+        if (config.isUseActualParamName()) {
+          name = getActualParamName(method, paramIndex);
+        }
+        if (name == null) {
+          // use the parameter index as the name (&quot;0&quot;, &quot;1&quot;, ...)
+          // gcode issue #71
+          name = String.valueOf(map.size());
+        }
+      }
+      map.put(paramIndex, name);
+    }
+    names = Collections.unmodifiableSortedMap(map);
+  }
+
+  private String getActualParamName(Method method, int paramIndex) {
+    return ParamNameUtil.getParamNames(method).get(paramIndex);
+  }
+
+  private static boolean isSpecialParameter(Class&lt;?&gt; clazz) {
+    return RowBounds.class.isAssignableFrom(clazz) || ResultHandler.class.isAssignableFrom(clazz);
+  }
+
+  /**
+   * Returns parameter names referenced by SQL providers.
+   */
+  public String[] getNames() {
+    return names.values().toArray(new String[0]);
+  }
+
+  /**
+   * &lt;p&gt;
+   * A single non-special parameter is returned without a name.
+   * Multiple parameters are named using the naming rule.
+   * In addition to the default names, this method also adds the generic names (param1, param2,
+   * ...).
+   * &lt;/p&gt;
+   */
+  public Object getNamedParams(Object[] args) {
+    final int paramCount = names.size();
+    if (args == null || paramCount == 0) {
+      return null;
+    }
+    // 没有加注解，并且只有一个参数的时候就返回第一个就就行，这样是为了节省性能
+    else if (!hasParamAnnotation &amp;&amp; paramCount == 1) {
+      return args[names.firstKey()];
+    }
+    /**
+     * 假如加了注解，返回的参数形式就有两套：
+     *  e.g.
+     *    @Param 这是一套
+     *    param1, param2, ...这是另一套
+     */
+    else {
+      final Map&lt;String, Object&gt; param = new ParamMap&lt;&gt;();
+      int i = 0;
+      for (Map.Entry&lt;Integer, String&gt; entry : names.entrySet()) {
+        param.put(entry.getValue(), args[entry.getKey()]);
+        // add generic param names (param1, param2, ...)
+        final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
+        // ensure not to overwrite parameter named with @Param
+        if (!names.containsValue(genericParamName)) {
+          param.put(genericParamName, args[entry.getKey()]);
+        }
+        i++;
+      }
+      return param;
+    }
+  }
+}
+</code></pre>
+
             <hr>
           </div>
           <br>

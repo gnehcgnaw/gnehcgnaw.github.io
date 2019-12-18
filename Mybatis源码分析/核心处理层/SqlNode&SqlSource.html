@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    73 字
+                    755 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      1 分钟
+                      3 分钟
                   </span>&nbsp;
                 
 
@@ -161,7 +161,53 @@
       <div class="py-5 z-depth-3" id="board">
         <div class="post-content mx-auto" id="post">
           <div class="markdown-body">
-            <h1 id="SqlNode-amp-SqlSource"><a href="#SqlNode-amp-SqlSource" class="headerlink" title="SqlNode&amp;SqlSource"></a>SqlNode&amp;SqlSource</h1><p>根据Mybatis初始化过程可知，映射配置文件中定义的SQL节点会被解析成MapperStatement对象，其中的SQL语句会被解析成SqlSource对象，SQL语句中定义的动态SQL节点、文本节点等，则有SqlNode接口的相应实现表示。</p>
+            <h1 id="SqlNode-amp-SqlSource"><a href="#SqlNode-amp-SqlSource" class="headerlink" title="SqlNode&amp;SqlSource"></a>SqlNode&amp;SqlSource</h1><p>根据Mybatis初始化过程可知，映射配置文件中定义的SQL节点会被解析成MapperStatement对象，其中的SQL语句会被解析成SqlSource对象，SQL语句中定义的动态SQL节点、文本节点等，则有SqlNode接口的相应实现表示，示例如下所示：</p>
+<pre><code class="xml"> &lt;select id=&quot;selectByAuthorById&quot; resultMap=&quot;authorResultMap&quot;&gt;
+    select * from tb_author
+    &lt;if test=&quot;list != null and list.size() != 0&quot;&gt;
+      where author_id in
+      &lt;foreach collection=&quot;list&quot; item=&quot;item&quot; index=&quot;index&quot; open=&quot;(&quot; separator=&quot;,&quot; close=&quot;)&quot;&gt;
+        #{item}
+      &lt;/foreach&gt;
+    &lt;/if&gt;
+
+    &lt;if test=&quot;list != null and list.size() != 0&quot;&gt;
+      where author_id = 1 
+    &lt;/if&gt;
+
+  &lt;/select&gt;</code></pre>
+<p>上述语句的SqlSource的结构为，如图所示：</p>
+<img src="/Users/gnehcgnaw/Library/Application Support/typora-user-images/image-20191218145748844.png" srcset="undefined" alt="image-20191218145748844" style="zoom:50%;" />
+
+<p>MappedStatement、SqlSource、SqlNode的类图如下所示：</p>
+<h1 id="1-SqlSource"><a href="#1-SqlSource" class="headerlink" title="1. SqlSource"></a>1. SqlSource</h1><p>SqlSource的实现图如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-jRLD3e.png!github_blog" srcset="undefined" alt=""></p>
+<p>这里对SqlSource接口的各个实现做简单说明：DynamicSqlSource负责动态SQL语句，RawSqlSource负责处理静态语句，两者最终都会将处理后的SQL语句封装成StaticSqlSource返回。DynamicSqlSource与StaticSqlSource的主要区别是：StaticSqlSource中记录了SQL语句中可能含有“?”占位符，但是可以直接提交给数据库执行；DynamicSqlSource中封装的SQL语句还需要进行一系列的解析，才会最终形成数据库可执行的SQL语句。DynamicSqlSource与RawSqlSource的区别在介绍RawSqlSource时会详细说明。</p>
+<h2 id="1-1-DynamicSqlSource"><a href="#1-1-DynamicSqlSource" class="headerlink" title="1.1. DynamicSqlSource"></a>1.1. DynamicSqlSource</h2><p>最先要介绍的是实践中最常用的SqlSource实现类——DynamicSqlSource，DynamicSqlSource中使用rootSqlNode字段（SqlNode类）记录了待解析的SqlNode树的根节点。DynamicSqlSource与MappedStatement以及SqlNode之间的关系如下图所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-NAMNCO.png!github_blog" srcset="undefined" alt=""></p>
+<p>具体图示如下所示：</p>
+<p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-pPrqQ0.jpg!github_blog" srcset="undefined" alt=""></p>
+<p>DynamicSqlSource中只有一个getBoundSql()方法，这个方法在用户调用Mapper接口中的方法的时候才会被调用(即：MappedStatement.getBounSql()的时候才能被调用)，因为它的作用就是将SQL语句中的“#{}”占位符替换成”?”占位符，创建BoundSql对象，并将DynamicContext.bindings中的参数信息复制到additionalParameters集合中保存，具体如下所示：</p>
+<pre><code class="java">@Override
+  public BoundSql getBoundSql(Object parameterObject) {
+    //创建DynamicContext对象，parameterObject使用传入的实参
+    DynamicContext context = new DynamicContext(configuration, parameterObject);
+    //通过调用rootSqlNode.apply()方法调用整个树形结构中全部的SqlNode.apply()方法，
+    // 每个SqlNode的apply()方法都会将解析得到的SQL语句片段追加到context中，最终通过
+    //context.getSql()得到完整的SQL语句
+    rootSqlNode.apply(context);
+    //创建SqlSourceBuilder，解析参数属性，并将SQL语句中的“#{}”占位符替换成&quot;?&quot;占位符
+    SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
+    Class&lt;?&gt; parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+    SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
+    //创建BoundSql对象，并将DynamicContext.bindings中的参数信息复制到additionalParameters集合中保存
+    BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
+    context.getBindings().forEach(boundSql::setAdditionalParameter);
+    return boundSql;
+  }</code></pre>
+<p>DynamicSqlSource的具体实现就介绍到这里。</p>
+<h2 id="1-2-RawSqlSource"><a href="#1-2-RawSqlSource" class="headerlink" title="1.2. RawSqlSource"></a>1.2. RawSqlSource</h2><p>RawSqlSource是SqlSource的另一个实现，其逻辑与DynamicSqlSource类似，但是执行时机是不一样的，处理的SQL语句类型也是不一样的。</p>
+<h1 id="2-SqlNode"><a href="#2-SqlNode" class="headerlink" title="2. SqlNode"></a>2. SqlNode</h1><p>SqlNode中使用了组合模式，故而Mybatis会将动态SQL节点解析成对应的SqlNode实现，并形成了一个树状结构。</p>
 
             <hr>
           </div>

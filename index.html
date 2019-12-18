@@ -357,8 +357,12 @@ public interface StatementHandler {
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">SqlNode&amp;SqlSource根据Mybatis初始化过程可知，映射配置文件中定义的SQL节点会被解析成MapperStatement对象，其中的SQL语句会被解析成SqlSource对象，SQL语句中定义的动态SQL节点、文本节点等，则有SqlNode接口的相应实现表示。
-</div>
+          <div class="index-text mb-1">SqlNode&amp;SqlSource根据Mybatis初始化过程可知，映射配置文件中定义的SQL节点会被解析成MapperStatement对象，其中的SQL语句会被解析成SqlSource对象，SQL语句中定义的动态SQL节点、文本节点等，则有SqlNode接口的相应实现表示，示例如下所示：
+ &lt;select id=&quot;selectByAuthorById&quot; resultMap=&quot;authorResultMap&quot;&gt;
+    select * from tb_author
+    &lt;if test=&quot;list != null and list.size() != 0&quot;&gt;
+      where author_id in
+      &lt;foreach collection=&quot;list&quot; item=&quot;item&quot; index=&quot;index&quot; open=&quot;(&quot; separator=&quot;,&quot; close=&</div>
         </div>
       </a>
 

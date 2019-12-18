@@ -392,6 +392,52 @@ public interface StatementHandler {
     
     
       <div class="col-12 col-md-4 m-auto">
+        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mapper%E6%98%A0%E5%B0%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90%E6%80%BB%E7%BB%93.html" target="_self">
+          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-IlmbcN.jpg" srcset="undefined" alt="Mybatis初始化(二)——5.Mapper映射配置文件解析总结" class="img-fluid rounded z-depth-3 index-thumbnails">
+        </a>
+      </div>
+    
+    <div class="col-12 col-md-8 m-auto">
+      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/Mapper%E6%98%A0%E5%B0%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90%E6%80%BB%E7%BB%93.html">
+        <p class="h4 index-header">Mybatis初始化(二)——5.Mapper映射配置文件解析总结</p>
+        
+        
+          
+        
+        <div class="index-excerpt" >
+          <div class="index-text mb-1">Mapper映射配置文件解析总结其实在完成以上解析之后，还有绑定Mapper接口和处理incomplete*结合两步，只不过绑定Mapper接口在binding模块章节就描述过，所以这里不再阐述，而incomplete*也很简单，所以也不再描述。
+至此解析Mapper映射配置文件的工作也就完成了，流程如下所示：
+
+</div>
+        </div>
+      </a>
+
+      <div>
+        
+          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-30&nbsp;&nbsp;
+        
+        
+          <i class="iconfont icon-inbox"></i>
+          
+            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+            <a href="/categories/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82">核心处理层</a>&nbsp;
+          &nbsp;
+        
+        
+          <i class="iconfont icon-tag"></i>
+          
+            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
+          
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 mx-auto">
+    
+    
+      <div class="col-12 col-md-4 m-auto">
         <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html" target="_self">
           <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-IlmbcN.jpg" srcset="undefined" alt="Mybatis初始化(二)——4.构建语句" class="img-fluid rounded z-depth-3 index-thumbnails">
         </a>
@@ -604,71 +650,11 @@ public interface Transaction {
     </div>
   </div>
 
-  <div class="row mb-4 mx-auto">
-    
-    
-      <div class="col-12 col-md-4 m-auto">
-        <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/DataSource.html" target="_self">
-          <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-11-vCiSqo.jpg" srcset="undefined" alt="DataSource" class="img-fluid rounded z-depth-3 index-thumbnails">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 m-auto">
-      <a href="/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82/DataSource.html">
-        <p class="h4 index-header">DataSource</p>
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">DataSource1. 工厂方法模式2. DataSourceFactory在数据源模块中，DataSourceFactory接口扮演工厂接口的角色。UnpooledDataSourceFactory和PooledDataSourceFactory则扮演着具体工厂类的角色。
-我们从DataSourceFactory接口开始分析，其定义如下：
-  /**
-   * 设置DataSource相关属性，
-   * 一切紧跟在初始化完成之后，证明：
-   *  {@link org.apache.ibatis.builder.xml.XMLConfigBuilder#dataSourceElement(XNode)}
-   * @param props
-   */
-  void setProperties(Properties props);
-
-  /**
-   * 获取DataSource对象
-   * @return
-   */
-  DataSource getDataSource();
-2.1. UnpooledDataSourceFactory在UnpooledDataSourceF</div>
-        </div>
-      </a>
-
-      <div>
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2019-11-29&nbsp;&nbsp;
-        
-        
-          <i class="iconfont icon-inbox"></i>
-          
-            <a href="/categories/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/categories/%E5%9F%BA%E7%A1%80%E6%94%AF%E6%8C%81%E5%B1%82">基础支持层</a>&nbsp;
-          &nbsp;
-        
-        
-          <i class="iconfont icon-tag"></i>
-          
-            <a href="/tags/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">Mybatis源码分析</a>&nbsp;
-          
-            <a href="/tags/%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F">工厂方法模式</a>&nbsp;
-          
-        
-      </div>
-    </div>
-  </div>
-
 
 
   <nav aria-label="index posts navigation">
     <span class="pagination pg-blue justify-content-center mt-5" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fas fa-angle-double-right"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fas fa-angle-double-right"></i></a>
     </span>
   </nav>
   

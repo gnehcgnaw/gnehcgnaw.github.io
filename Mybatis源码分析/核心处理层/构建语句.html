@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    3.4k 字
+                    3.5k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      15 分钟
+                      16 分钟
                   </span>&nbsp;
                 
 
@@ -455,6 +455,8 @@ databaseId CDATA #IMPLIED
     return sqlSource;
   }</code></pre>
 <p>这里的<code>isDynamic</code>会被调用<code>parseDynamicTags()</code>重新赋值，而在这里会判断整个<code>SQL</code>节点是不是动态的，如果不是动态的<code>SQL</code>节点，则创建相应的<code>RawSqlSource</code>对象。</p>
+<p><strong>这里有个细节：</strong></p>
+<p>根据<code>isDynamic</code>值不同生成不同的<code>SqlSource</code>实现类，为<code>true</code>的时候生成<code>DynamicSqlSource</code>对象，为<code>false</code>的时候生成<code>RawSqlSource</code>对象，但是根据<code>DynamicSqlSource</code>和<code>RawSqlSource</code>构造方法的不同的原因，可以发现在<code>isDynamic=true</code>的时候，只是单单生成了一个<code>DynamicSqlSource</code>对象，而当<code>isDynamic=false</code>的时候，<code>RawSqlSource</code>的构造方法中还调用了<code>RawSqlSource.geSql()</code>完成了<code>SQL</code>的拼接，接着又通过<code>SqlSourceBuilder.parse()</code>完成了<code>SQL</code>中“<code>#{}</code>”到“<code>？</code>”的转变。(DynamicSqlSource的构造方法和RawSqlSource的构造方法，参见SqlSource&amp;SqlNode章节)</p>
 <h2 id="2-1-parseDynamicTags"><a href="#2-1-parseDynamicTags" class="headerlink" title="2.1. parseDynamicTags()"></a>2.1. parseDynamicTags()</h2><p>是否是动态语句的规则就是：如果节点中只包含<code>#{}</code>占位符，而不包含动态<code>SQL</code>节点或未被解析的<code>${}</code>占位符的话，则不是动态<code>SQL</code>语句，会创建相应的<code>StaticTextSqlNode</code>对象。</p>
 <pre><code class="java"> protected MixedSqlNode parseDynamicTags(XNode node) {
     List&lt;SqlNode&gt; contents = new ArrayList&lt;&gt;();

@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    755 字
+                    1.2k 字
                   </span>&nbsp;
                 
 
@@ -128,7 +128,7 @@
                   
                   &nbsp;<i class="far fa-clock"></i>
                   <span class="post-count">
-                      3 分钟
+                      5 分钟
                   </span>&nbsp;
                 
 
@@ -179,15 +179,14 @@
 <p>上述语句的SqlSource的结构为，如图所示：</p>
 <img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-O6DYkN.png!github_blog" srcset="undefined" style="zoom:67%;" />
 
-<p>MappedStatement、SqlSource、SqlNode的类图如下所示：</p>
-<h1 id="1-SqlSource"><a href="#1-SqlSource" class="headerlink" title="1. SqlSource"></a>1. SqlSource</h1><p>SqlSource的实现图如下所示：</p>
+<h1 id="1-SqlSource"><a href="#1-SqlSource" class="headerlink" title="1. SqlSource"></a>1. SqlSource</h1><p><code>SqlSource</code>的实现图如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-jRLD3e.png!github_blog" srcset="undefined" alt=""></p>
-<p>这里对SqlSource接口的各个实现做简单说明：DynamicSqlSource负责动态SQL语句，RawSqlSource负责处理静态语句，两者最终都会将处理后的SQL语句封装成StaticSqlSource返回。DynamicSqlSource与StaticSqlSource的主要区别是：StaticSqlSource中记录了SQL语句中可能含有“?”占位符，但是可以直接提交给数据库执行；DynamicSqlSource中封装的SQL语句还需要进行一系列的解析，才会最终形成数据库可执行的SQL语句。DynamicSqlSource与RawSqlSource的区别在介绍RawSqlSource时会详细说明。</p>
-<h2 id="1-1-DynamicSqlSource"><a href="#1-1-DynamicSqlSource" class="headerlink" title="1.1. DynamicSqlSource"></a>1.1. DynamicSqlSource</h2><p>最先要介绍的是实践中最常用的SqlSource实现类——DynamicSqlSource，DynamicSqlSource中使用rootSqlNode字段（SqlNode类）记录了待解析的SqlNode树的根节点。DynamicSqlSource与MappedStatement以及SqlNode之间的关系如下图所示：</p>
+<p>这里对<code>SqlSource</code>接口的各个实现做简单说明：<code>DynamicSqlSource</code>负责动态<code>SQL</code>语句，<code>RawSqlSource</code>负责处理静态<code>SQL</code>语句，两者最终都会将处理后的<code>SQL</code>语句封装成<code>StaticSqlSource</code>返回。<code>DynamicSqlSource</code>与<code>StaticSqlSource</code>的主要区别是：<code>StaticSqlSource</code>中记录了<code>SQL</code>语句中可能含有“<code>?</code>”占位符，但是可以直接提交给数据库执行；<code>DynamicSqlSource</code>中封装的<code>SQL</code>语句还需要进行一系列的解析，才会最终形成数据库可执行的<code>SQL</code>语句。<code>DynamicSqlSource</code>与<code>RawSqlSource</code>的区别在介绍<code>RawSqlSource</code>时会详细说明。</p>
+<h2 id="1-1-DynamicSqlSource"><a href="#1-1-DynamicSqlSource" class="headerlink" title="1.1. DynamicSqlSource"></a>1.1. DynamicSqlSource</h2><p>最先要介绍的是实践中最常用的<code>SqlSource</code>实现类——<code>DynamicSqlSource</code>，<code>DynamicSqlSource</code>中使用<code>rootSqlNode</code>字段（<code>SqlNode</code>类）记录了待解析的<code>SqlNode</code>树的根节点。<code>DynamicSqlSource</code>与<code>MappedStatement</code>以及<code>SqlNode</code>之间的关系如下图所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-NAMNCO.png!github_blog" srcset="undefined" alt=""></p>
 <p>具体图示如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-pPrqQ0.jpg!github_blog" srcset="undefined" alt=""></p>
-<p>DynamicSqlSource中只有一个getBoundSql()方法，这个方法在用户调用Mapper接口中的方法的时候才会被调用(即：MappedStatement.getBounSql()的时候才能被调用)，因为它的作用就是将SQL语句中的“#{}”占位符替换成”?”占位符，创建BoundSql对象，并将DynamicContext.bindings中的参数信息复制到additionalParameters集合中保存，具体如下所示：</p>
+<p><code>DynamicSqlSource</code>中只有一个<code>getBoundSql()</code>方法，这个方法在用户调用<code>Mapper</code>接口中的方法的时候才会被调用(即：<code>MappedStatement.getBounSql()</code>的时候才能被调用)，因为它的作用就是将<code>SQL</code>语句中的“<code>#{}</code>”占位符替换成”<code>?</code>“占位符，创建<code>BoundSql</code>对象，并将<code>DynamicContext.bindings</code>中的参数信息复制到<code>additionalParameters</code>集合中保存，具体如下所示：</p>
 <pre><code class="java">@Override
   public BoundSql getBoundSql(Object parameterObject) {
     //创建DynamicContext对象，parameterObject使用传入的实参
@@ -205,9 +204,41 @@
     context.getBindings().forEach(boundSql::setAdditionalParameter);
     return boundSql;
   }</code></pre>
-<p>DynamicSqlSource的具体实现就介绍到这里。</p>
-<h2 id="1-2-RawSqlSource"><a href="#1-2-RawSqlSource" class="headerlink" title="1.2. RawSqlSource"></a>1.2. RawSqlSource</h2><p>RawSqlSource是SqlSource的另一个实现，其逻辑与DynamicSqlSource类似，但是执行时机是不一样的，处理的SQL语句类型也是不一样的。</p>
-<h1 id="2-SqlNode"><a href="#2-SqlNode" class="headerlink" title="2. SqlNode"></a>2. SqlNode</h1><p>SqlNode中使用了组合模式，故而Mybatis会将动态SQL节点解析成对应的SqlNode实现，并形成了一个树状结构。</p>
+<p><code>DynamicSqlSource</code>的具体实现就介绍到这里。</p>
+<h2 id="1-2-RawSqlSource"><a href="#1-2-RawSqlSource" class="headerlink" title="1.2. RawSqlSource"></a>1.2. RawSqlSource</h2><p><code>RawSqlSource</code>是<code>SqlSource</code>的另一个实现，其逻辑与<code>DynamicSqlSource</code>类似，但是执行时机是不一样的，处理的<code>SQL</code>语句类型也是不一样的。前面介绍<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html#2-1-parseDynamicTags" target="_blank" rel="noopener">XMLScriptBuilder.parseDynamicTags()</a>方法时提到过，如果节点只包含“<code>#{}</code>”占位符，而不包含动态<code>SQL</code>节点或未解析的“<code>${}</code>”占位符的话，这不是动态<code>SQL</code>语句，会创建相应的StaticTextSqlNode对象。在<code>XMLScriptBuider.parseSctiptNode()</code>方法中会判断整个<code>SQL</code>节点是否为动态的，如果不是动态的<code>SQL</code>节点，则创建相应的<code>RawSqlSource</code>对象。</p>
+<p><code>RawSqlSource</code>在构造方法中首先会调用<code>getSql()</code>方法，其中通过调用<code>SqlNode.apply()</code>方法完成<code>SQL</code>语句的拼装和初步处理，之后会使用<code>SqlSourceBuilder</code><strong>完成占位符的替换</strong>（*<u><strong>也就是说如果是RawSqlSource类型的SQL节点，在这个时候就完成了从#{} 到？号的转变</strong></u>*）和<code>ParameterMapping</code>集合的创建，并返回<code>StaticSqlSource</code>对象。这两个过程的具体实现前面已经介绍过了，不在重复。</p>
+<p>下面简单介绍一下RawSqlSource的具体实现：</p>
+<pre><code class="java">public class RawSqlSource implements SqlSource {
+
+  private final SqlSource sqlSource;
+
+  public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class&lt;?&gt; parameterType) {
+    //调用getSql()方法，完成SQL语句的拼装和解析
+    this(configuration, getSql(configuration, rootSqlNode), parameterType);
+  }
+
+  public RawSqlSource(Configuration configuration, String sql, Class&lt;?&gt; parameterType) {
+    //通过SqlSourceBuilder完成占位符的拼装和初步解析  从#{}   ---&gt;?的转变
+    SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
+    Class&lt;?&gt; clazz = parameterType == null ? Object.class : parameterType;
+    sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap&lt;&gt;());
+  }
+
+  private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
+    DynamicContext context = new DynamicContext(configuration, null);
+    rootSqlNode.apply(context);
+    return context.getSql();
+  }
+
+  @Override
+  public BoundSql getBoundSql(Object parameterObject) {
+    return sqlSource.getBoundSql(parameterObject);
+  }
+
+}
+</code></pre>
+<p>通过本节的分析，无论是StaticSqlSource、DynamicSqlSource还是RawSqlSource，最终都会统一生成BoundSql对象，其封装了完整的SQL语句（可能包含“？”占位符）、参数映射关系(parameterMappings集合)、以及用户传入的参数(additionalParameters集合)。另外，DynamicSqlSource负责处理动态SQL语句，RawSqlSource负责处理静态SQL语句。<strong>除此之外，两者解析SQL语句的时机是不一样的，前者的解析时机是在实际执行SQL语句的之前，而后者则是在Mybatis初始化是完成SQL语句的解析</strong>（原因是：）。</p>
+<pre><code></code></pre><h1 id="2-SqlNode"><a href="#2-SqlNode" class="headerlink" title="2. SqlNode"></a>2. SqlNode</h1><p>SqlNode中使用了组合模式，故而Mybatis会将动态SQL节点解析成对应的SqlNode实现，并形成了一个树状结构。</p>
 
             <hr>
           </div>

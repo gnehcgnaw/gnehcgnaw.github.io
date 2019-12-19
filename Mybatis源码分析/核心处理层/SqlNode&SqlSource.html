@@ -120,7 +120,7 @@
                   
                   &nbsp;<i class="far fa-chart-bar"></i>
                   <span class="post-count">
-                    1.2k 字
+                    1.3k 字
                   </span>&nbsp;
                 
 
@@ -186,7 +186,14 @@
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-NAMNCO.png!github_blog" srcset="undefined" alt=""></p>
 <p>具体图示如下所示：</p>
 <p><img src="https://gnehcgnaw.oss-cn-hongkong.aliyuncs.com/blog/2019/12/2019-12-18-pPrqQ0.jpg!github_blog" srcset="undefined" alt=""></p>
-<p><code>DynamicSqlSource</code>中只有一个<code>getBoundSql()</code>方法，这个方法在用户调用<code>Mapper</code>接口中的方法的时候才会被调用(即：<code>MappedStatement.getBounSql()</code>的时候才能被调用)，因为它的作用就是将<code>SQL</code>语句中的“<code>#{}</code>”占位符替换成”<code>?</code>“占位符，创建<code>BoundSql</code>对象，并将<code>DynamicContext.bindings</code>中的参数信息复制到<code>additionalParameters</code>集合中保存，具体如下所示：</p>
+<h3 id="1-1-1-参数"><a href="#1-1-1-参数" class="headerlink" title="1.1.1. 参数"></a>1.1.1. 参数</h3><pre><code>  private final Configuration configuration;
+
+  private final SqlNode rootSqlNode;
+</code></pre><h3 id="1-1-2-构造方法"><a href="#1-1-2-构造方法" class="headerlink" title="1.1.2. 构造方法"></a>1.1.2. 构造方法</h3><p><code>DynamicSqlSource</code>构造方法只是初始化了<code>configuration</code>和<code>rootSqlNode</code>的值。</p>
+<pre><code>  public DynamicSqlSource(Configuration configuration, SqlNode rootSqlNode) {
+    this.configuration = configuration;
+    this.rootSqlNode = rootSqlNode;
+  }</code></pre><h3 id="1-1-3-getBoundSql"><a href="#1-1-3-getBoundSql" class="headerlink" title="1.1.3. getBoundSql()"></a>1.1.3. <code>getBoundSql()</code></h3><p><code>DynamicSqlSource</code>中只有一个<code>getBoundSql()</code>方法，<strong>这个方法在用户调用<code>Mapper</code>接口中的方法的时候才会被调用(即：<code>MappedStatement.getBounSql()</code>的时候才能被调用)，</strong>因为它的作用就是将<code>SQL</code>语句中的“<code>#{}</code>”占位符替换成”<code>?</code>“占位符，创建<code>BoundSql</code>对象，并将<code>DynamicContext.bindings</code>中的参数信息复制到<code>additionalParameters</code>集合中保存，具体如下所示：</p>
 <pre><code class="java">@Override
   public BoundSql getBoundSql(Object parameterObject) {
     //创建DynamicContext对象，parameterObject使用传入的实参
@@ -205,15 +212,11 @@
     return boundSql;
   }</code></pre>
 <p><code>DynamicSqlSource</code>的具体实现就介绍到这里。</p>
-<h2 id="1-2-RawSqlSource"><a href="#1-2-RawSqlSource" class="headerlink" title="1.2. RawSqlSource"></a>1.2. RawSqlSource</h2><p><code>RawSqlSource</code>是<code>SqlSource</code>的另一个实现，其逻辑与<code>DynamicSqlSource</code>类似，但是执行时机是不一样的，处理的<code>SQL</code>语句类型也是不一样的。前面介绍<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html#2-1-parseDynamicTags" target="_blank" rel="noopener">XMLScriptBuilder.parseDynamicTags()</a>方法时提到过，如果节点只包含“<code>#{}</code>”占位符，而不包含动态<code>SQL</code>节点或未解析的“<code>${}</code>”占位符的话，这不是动态<code>SQL</code>语句，会创建相应的StaticTextSqlNode对象。在<code>XMLScriptBuider.parseSctiptNode()</code>方法中会判断整个<code>SQL</code>节点是否为动态的，如果不是动态的<code>SQL</code>节点，则创建相应的<code>RawSqlSource</code>对象。</p>
+<h2 id="1-2-RawSqlSource"><a href="#1-2-RawSqlSource" class="headerlink" title="1.2. RawSqlSource"></a>1.2. RawSqlSource</h2><p><code>RawSqlSource</code>是<code>SqlSource</code>的另一个实现，其逻辑与<code>DynamicSqlSource</code>类似，但是执行时机是不一样的，处理的<code>SQL</code>语句类型也是不一样的。前面介绍<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html#2-1-parseDynamicTags" target="_blank" rel="noopener">XMLScriptBuilder.parseDynamicTags()</a>方法时提到过，如果节点只包含“<code>#{}</code>”占位符，而不包含动态<code>SQL</code>节点或未解析的“<code>${}</code>”占位符的话，这不是动态<code>SQL</code>语句，会创建相应的<code>StaticTextSqlNode</code>对象。在<code>XMLScriptBuider.parseSctiptNode()</code>方法中会判断整个<code>SQL</code>节点是否为动态的，如果不是动态的<code>SQL</code>节点，则创建相应的<code>RawSqlSource</code>对象。</p>
 <p><code>RawSqlSource</code>在构造方法中首先会调用<code>getSql()</code>方法，其中通过调用<code>SqlNode.apply()</code>方法完成<code>SQL</code>语句的拼装和初步处理，之后会使用<code>SqlSourceBuilder</code><strong>完成占位符的替换</strong>（*<u><strong>也就是说如果是RawSqlSource类型的SQL节点，在这个时候就完成了从#{} 到？号的转变</strong></u>*）和<code>ParameterMapping</code>集合的创建，并返回<code>StaticSqlSource</code>对象。这两个过程的具体实现前面已经介绍过了，不在重复。</p>
-<p>下面简单介绍一下RawSqlSource的具体实现：</p>
-<pre><code class="java">public class RawSqlSource implements SqlSource {
-
-  private final SqlSource sqlSource;
-
-  public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class&lt;?&gt; parameterType) {
-    //调用getSql()方法，完成SQL语句的拼装和解析
+<h3 id="1-2-1-参数"><a href="#1-2-1-参数" class="headerlink" title="1.2.1. 参数"></a>1.2.1. 参数</h3><pre><code class="java"> private final SqlSource sqlSource;</code></pre>
+<h3 id="1-2-2-构造方法"><a href="#1-2-2-构造方法" class="headerlink" title="1.2.2. 构造方法"></a>1.2.2. 构造方法</h3><pre><code class="java"> public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class&lt;?&gt; parameterType) {
+    //调用getSql()方法，完成SQL语句的拼装
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
@@ -222,23 +225,20 @@
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class&lt;?&gt; clazz = parameterType == null ? Object.class : parameterType;
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap&lt;&gt;());
-  }
-
-  private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
+  }</code></pre>
+<p>重载的构造方法会通过<code>SqlSourceBuilder</code>完成占位符的拼装和初步解析  从“<code>#{}</code> ”到“<code>?</code>”的转变。</p>
+<h3 id="1-2-3-getSql"><a href="#1-2-3-getSql" class="headerlink" title="1.2.3. getSql()"></a>1.2.3. <code>getSql()</code></h3><p><code>getSql()</code>会被构造方法调用，作用是完成<code>SQL</code>语句的拼装。</p>
+<pre><code class="java">  private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     DynamicContext context = new DynamicContext(configuration, null);
     rootSqlNode.apply(context);
     return context.getSql();
-  }
-
-  @Override
+  }</code></pre>
+<h3 id="1-2-4-getBoundSql"><a href="#1-2-4-getBoundSql" class="headerlink" title="1.2.4. getBoundSql()"></a>1.2.4. <code>getBoundSql()</code></h3><pre><code class="java"> @Override
   public BoundSql getBoundSql(Object parameterObject) {
     return sqlSource.getBoundSql(parameterObject);
-  }
-
-}
-</code></pre>
-<p>通过本节的分析，无论是StaticSqlSource、DynamicSqlSource还是RawSqlSource，最终都会统一生成BoundSql对象，其封装了完整的SQL语句（可能包含“？”占位符）、参数映射关系(parameterMappings集合)、以及用户传入的参数(additionalParameters集合)。另外，DynamicSqlSource负责处理动态SQL语句，RawSqlSource负责处理静态SQL语句。<strong>除此之外，两者解析SQL语句的时机是不一样的，前者的解析时机是在实际执行SQL语句的之前，而后者则是在Mybatis初始化是完成SQL语句的解析</strong>（原因是：）。</p>
-<pre><code></code></pre><h1 id="2-SqlNode"><a href="#2-SqlNode" class="headerlink" title="2. SqlNode"></a>2. SqlNode</h1><p>SqlNode中使用了组合模式，故而Mybatis会将动态SQL节点解析成对应的SqlNode实现，并形成了一个树状结构。</p>
+  }</code></pre>
+<p>通过本节的分析，无论是<code>StaticSqlSource</code>、<code>DynamicSqlSource</code>还是<code>RawSqlSource</code>，最终都会统一生成<code>BoundSql</code>对象，其封装了完整的<code>SQL</code>语句（可能包含“<code>？</code>”占位符）、参数映射关系(<code>parameterMappings</code>集合)、以及用户传入的参数(<code>additionalParameters</code>集合)。另外，<code>DynamicSqlSource</code>负责处理动态<code>SQL</code>语句，<code>RawSqlSource</code>负责处理静态<code>SQL</code>语句。<strong>除此之外，两者解析<code>SQL</code>语句的时机是不一样的，前者的解析时机是在实际执行<code>SQL</code>语句的之前，而后者则是在<code>Mybatis</code>初始化是完成<code>SQL</code>语句的解析</strong>（原因见：<a href="https://gnehcgnaw.github.io/Mybatis%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/%E6%A0%B8%E5%BF%83%E5%A4%84%E7%90%86%E5%B1%82/%E6%9E%84%E5%BB%BA%E8%AF%AD%E5%8F%A5.html#2-1-praseScriptNode" target="_blank" rel="noopener">XMLScript.parseScriptNode()</a>）。</p>
+<h1 id="2-SqlNode"><a href="#2-SqlNode" class="headerlink" title="2. SqlNode"></a>2. SqlNode</h1><p>SqlNode中使用了组合模式，故而Mybatis会将动态SQL节点解析成对应的SqlNode实现，并形成了一个树状结构。</p>
 
             <hr>
           </div>
